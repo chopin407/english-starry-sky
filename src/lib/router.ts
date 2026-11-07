@@ -7,6 +7,7 @@ export type Route =
   | { page: "learn" }
   | { page: "practice" }
   | { page: "points"; unit?: string; sec?: "points" }
+  | { page: "essays"; book?: string; essay?: string }
   | { page: "me" }
   | { page: "about" }
   | { page: "teacher" };
@@ -28,6 +29,7 @@ function parse(hash: string): Location {
   else if (seg[0] === "learn") route = { page: "learn" };
   else if (seg[0] === "practice") route = { page: "practice" };
   else if (seg[0] === "points") route = { page: "points", unit: params.get("unit") || undefined, sec: params.get("sec") === "points" ? "points" : undefined };
+  else if (seg[0] === "essays") route = { page: "essays", book: seg[1], essay: seg[2] };
   else if (seg[0] === "me") route = { page: "me" };
   else if (seg[0] === "about") route = { page: "about" };
   else if (seg[0] === "teacher") route = { page: "teacher" };
@@ -47,7 +49,8 @@ export function href(route: Route, word?: string | null) {
   if (route.page === "points" && route.sec) params.set("sec", route.sec);
   if (word) params.set("w", word);
   const q = params.toString();
-  return `#/${route.page === "today" ? "" : route.page}${q ? `?${q}` : ""}`;
+  const path = route.page === "essays" && route.book ? [route.page, route.book, route.essay].filter(Boolean).join("/") : route.page;
+  return `#/${route.page === "today" ? "" : path}${q ? `?${q}` : ""}`;
 }
 
 let loc = parse(location.hash);

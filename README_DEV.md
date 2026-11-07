@@ -11,11 +11,41 @@ npm run dev
 
 电脑浏览器打开 http://localhost:5191 ；手机连同一个网络，打开 `http://电脑的地址:5191`。
 
+## 发布到局域网
+
+在项目根目录打开 PowerShell。本机需要 Node.js 20+、Python 3.9+ 和 OpenSSH（`ssh`、`scp`）。首次构建先运行 `npm ci`。
+
+```powershell
+# 只运行测试、编译和打包，生成 dist/english-starry-sky.tar.gz
+.\scripts\deploy-lan.ps1 -BuildOnly
+
+# 只上传现有发布包并发布，保留本机发布包供下次使用
+.\scripts\deploy-lan.ps1 -DeployOnly
+
+# 构建并上传到 kjg@192.168.1.74，默认使用 HTTP 端口 8091
+.\scripts\deploy-lan.ps1
+
+# 构建后只上传有变化的文件
+.\scripts\deploy-lan.ps1 -Incremental
+
+# 直接从本机已有发布包提取有变化的文件并上传
+.\scripts\deploy-lan.ps1 -Incremental -DeployOnly
+
+# 换服务器、安装目录或 HTTP 端口
+.\scripts\deploy-lan.ps1 -SshTarget kjg@192.168.1.74 -RemoteDir /home/kjg/work/english-starry-sky -Port 8092
+```
+
+Linux 服务器需要 Bash、Node.js、PM2、Python 3、`curl`、`tar` 和 `flock`。SSH 用户需要能写入部署目录，默认目录是 `/home/kjg/work/english-starry-sky`。发布后，同一网络的设备可访问 `http://192.168.1.74:8091/`。如服务器有防火墙，需允许局域网访问所选 TCP 端口。
+
+增量发布需要服务器已有一次完整发布。脚本按文件内容比对，复用未改动的 MP3、图片等文件，上传新增和修改的文件，并从新版本中移除本次构建已删除的文件。服务器在同一文件系统内通过硬链接复用文件，请通过重新发布更新内容。若比对期间服务器切换了版本，重新运行增量命令即可。
+
+发布脚本会在暂存目录组装完整站点，再切换 `english-starry-sky` PM2 进程。确认首页、版本标记和课文音频分段请求通过后，写入 `current-release`。切换后检查失败会尝试恢复上一版。服务器会保留各版本，完整发布约占 530 MiB，增量版本可共享未变动文件的磁盘空间。可通过 `pm2 status` 和 `pm2 logs english-starry-sky` 查看状态。如需开机自动恢复，首次以部署用户运行 `pm2 startup` 并按提示完成系统配置。
+
 ## 有什么
 - **今日**：每天的新词和复习（FSRS 算法安排），学习路线按课本 10 个单元排列。
 - **图鉴 / 星图**：285 个课本词条（不含人名），按单元和类型（课标重点词、一般词汇、短语、地名与专名）浏览；星图里每学会一个词点亮一颗星。
 - **课本**：每个单元先是「课文与对话」点读（课本原声，点一句读一句，也能整段播放），再是 28 个语法、句型考点，149 道练习题，带解析和错题重练。
-- **练习**：单词听写、英文听写、中文听写（纸笔默写，手机上对答案）。
+- **练习**：单词听写、短句听写和中文听写均可在线作答、自动判分。错题会进入错词本，并按间隔加入到期复习。
 - 词卡和考点页底部的「!」提示条：在真题里出现过几次，点开看原句。
 
 ## 内容放在哪里
@@ -24,6 +54,7 @@ npm run dev
 | `public/atlas/` | 词库（词光格式） | 运行 `python3 scripts/build_atlas.py`，从 `../app/public/data/7a.json` 和课本录音生成 |
 | `public/data/7a-lessons.json`、`public/lessons/7a/` | 课文点读：逐句文字和时间、课本录音 | 见下面「课文点读」 |
 | `public/data/7a-points.json` | 考点讲解和练习题 | 直接改文字、加题 |
+| `src/data/essays/7a.ts` | 七年级上册写作范文 | 在数组中追加文章，保留唯一的 `id` 和至少一个正文版本。新增其他册数时，以册号命名 `.ts` 文件并默认导出同结构的数组 |
 | `public/data/7a-exams.json` | 真题提示 | 在 `../app` 里运行 `scripts/build_exams.py` 后复制过来 |
 
 词表、录音切分、真题统计这些脚本还在 `../app/scripts/`，说明见 `../app/README.md`。

@@ -9,6 +9,29 @@ export const clean = (text: string) =>
 export const same = (a: string, b: string) =>
   clean(a).toLowerCase() === clean(b).toLowerCase();
 
+export function matchesDictation(value: string, target: string, sentence: boolean) {
+  const normalize = (text: string) => clean(text).trim().replace(/ +/g, " ");
+  const submitted = normalize(value);
+  const expected = normalize(target);
+  if (!submitted || sentence) return !!submitted && submitted === expected;
+
+  const wordForm = (text: string) => normalize(text).toLowerCase().replace(/ +([!?.,])/g, "$1");
+  const input = wordForm(submitted);
+  // Headwords can contain textbook annotations, e.g. "grey (AmE gray)" or "depend on / upon".
+  const american = expected.match(/\(AmE ([^)]+)\)$/)?.[1];
+  const forms = [expected, expected.replace(/ *\([^()]*\)/g, ""), expected.replace(/[()]/g, "")];
+  if (american) forms.push(american);
+  if (expected === "a lot of / lots of") return [expected, "a lot of", "lots of"].includes(input);
+
+  return forms.some((form) => {
+    if (wordForm(form) === input) return true;
+    const choices = form.match(/^(.*?)([^ /]+) *\/ *([^ /]+)(.*)$/);
+    if (!choices) return false;
+    const [, prefix, left, right, suffix] = choices;
+    return [left, right].some((choice) => wordForm(prefix + choice + suffix) === input);
+  });
+}
+
 /** Use normalized Unicode code points consistently for scoring and highlighting. */
 export function correctCharacterCount(value: string, target: string) {
   const expected = Array.from(clean(target));

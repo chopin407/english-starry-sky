@@ -1,6 +1,25 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { clean, same, typingDelta, typingMetrics } from "./typing";
+import { clean, matchesDictation, same, typingDelta, typingMetrics } from "./typing";
+
+test("dictation normalizes keyboard typography and enforces sentence case and punctuation", () => {
+  assert.ok(matchesDictation("  ＥＶＥＲＹＯＮＥ  ", "everyone", false));
+  assert.ok(matchesDictation("  It’s   fine！  ", "It's fine!", true));
+  assert.ok(!matchesDictation("Everyonee", "everyone", false));
+  assert.ok(!matchesDictation("it's fine!", "It's fine!", true));
+  assert.ok(!matchesDictation("It's fine", "It's fine!", true));
+  assert.ok(!matchesDictation("   ", "", false));
+});
+
+test("word dictation accepts variants and optional words marked in textbook headwords", () => {
+  assert.ok(matchesDictation("gray", "grey (AmE gray )", false));
+  assert.ok(matchesDictation("at the back", "at the back (of)", false));
+  assert.ok(matchesDictation("at the back of", "at the back (of)", false));
+  assert.ok(matchesDictation("depend upon", "depend on / upon", false));
+  assert.ok(matchesDictation("cut sth into sth", "cut sth in / into sth", false));
+  assert.ok(matchesDictation("lots of", "a lot of / lots of", false));
+  assert.ok(!matchesDictation("upon", "depend on / upon", false));
+});
 
 test("typing counts inserted characters and does not reward deletions", () => {
   assert.deepEqual(typingDelta("", "c", "cat"), { total: 1, correct: 1 });

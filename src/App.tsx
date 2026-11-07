@@ -1,6 +1,6 @@
-import { BookOpen, BookText, ChevronLeft, ChevronRight, Github, PenLine, Search, Trophy, User, type LucideIcon } from "lucide-react";
+import { BookOpen, BookText, ChevronLeft, ChevronRight, FileText, Github, PenLine, Search, Trophy, User, type LucideIcon } from "lucide-react";
 import { useConstellations } from "./galaxy/useConstellations";
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { AtlasContext, useAtlas, useEntry } from "./atlas/context";
 import { loadOpenAtlas, loadPrivateAtlas, withShelf } from "./atlas/data";
 import { BOOKS, bookById, bookTag } from "./lib/books";
@@ -33,6 +33,8 @@ import { ChestAutoPop, useEarnDaily, useEggChest } from "./ui/Chest";
 import { TreasuryButton, TreasurySheet } from "./ui/Treasury";
 import { BadgeButton, BadgeSheet, useBadgeToasts } from "./ui/Badges";
 
+const Essays = lazy(() => import("./pages/Essays"));
+
 // 「今日」用标志当图标，和左上角的标志一致
 const TodayIcon = ({ size }: { size?: number; strokeWidth?: number; className?: string }) => <Mark size={size} />;
 
@@ -41,6 +43,7 @@ const NAV: { page: Route["page"]; label: string; icon: LucideIcon | typeof Today
   { page: "atlas", label: "图鉴", icon: BookOpen },
   { page: "points", label: "课本", icon: BookText },
   { page: "practice", label: "练习", icon: PenLine },
+  { page: "essays", label: "范文", icon: FileText },
   { page: "me", label: "我的", icon: User },
 ];
 /** 挑战模式打开后，「练习」这一格变成「挑战」（真题阅读馆） */
@@ -213,6 +216,11 @@ function Shell({ privateAvailable }: { privateAvailable: boolean }) {
         {route.page === "learn" && <Learn />}
         {route.page === "practice" && (challenge ? <Challenge /> : <Practice />)}
         {route.page === "points" && <PointsPage />}
+        {route.page === "essays" && (
+          <Suspense fallback={<span className="spinner" role="status" aria-label="正在加载范文" />}>
+            <Essays route={route} />
+          </Suspense>
+        )}
         {route.page === "me" && <Me privateAvailable={privateAvailable} />}
         {route.page === "about" && <About />}
         {route.page === "teacher" && <Teacher />}

@@ -1,21 +1,23 @@
-import { Check, Eye, Headphones, Languages, RotateCcw, Snail, Type, X } from "lucide-react";
+import { ArrowRight, Check, Clock, Headphones, Languages, RotateCcw, Snail, Type, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { prefetch, useAtlas } from "../atlas/context";
 import { MEDIA, type Entry } from "../atlas/types";
 import { play, stopAudio } from "../lib/audio";
 import { cue } from "../lib/sound";
 import { hashSeed, shuffle } from "../lib/text";
+import { matchesDictation } from "../lib/typing";
+import { practiceKey, updatePracticeReview, type PracticeMode, type PracticePrompt } from "../store/practiceReview";
+import { formatInterval } from "../store/srs";
 import { store, useStore } from "../store/store";
 import { AmbiencePicker } from "../ui/Ambience";
 import { Illustration } from "../ui/Illustration";
 import { Quiz, WrongPanel, type Item } from "./Points";
 import { ChallengeSwitch } from "./Challenge";
 
-/** 三种听写都写在本子上：屏幕出题、给答案，学生自己判对错（考试是手写，不练打字） */
-type Mode = "word" | "dictation" | "sentence";
 type Source = "recent" | "mistakes" | "saved" | "path";
+type Question = { prompt: PracticePrompt; entry: Entry; atlas: ReturnType<typeof useAtlas> };
 
-const MODES: [Mode, string, string, typeof Type][] = [
+const MODES: [PracticeMode, string, string, typeof Type][] = [
   ["word", "单词听写", "听发音、看图，写出单词", Type],
   ["dictation", "短句听写", "听英文短句，写下整句", Headphones],
   ["sentence", "中文听写", "看中文意思，写出英文句子", Languages],
@@ -30,6 +32,8 @@ const SOURCES: [Source, string][] = [
 const RANGE_KEY = "word-atlas:practice-range:";
 const unitShort = (u: string) => u.replace(/^Starter Unit /, "预备").replace(/^Unit /, "");
 const sorted = (a: number, b: number): [number, number] => (a <= b ? [a, b] : [b, a]);
+const modeName = (mode: PracticeMode) => MODES.find(([id]) => id === mode)?.[1];
+const answer = ({ prompt, entry }: Question) => (prompt.mode === "word" ? entry.w : entry.ex[0].en);
 
 function loadRange(book: string, n: number, start: number): [number, number] {
   try {
@@ -114,7 +118,7 @@ export function Practice() {
   const atlas = useAtlas();
   const progress = useStore((s) => s.progress);
   const startLevel = useStore((s) => s.settings.startLevel);
-  const [mode, setMode] = useState<Mode>("word");
+  const [mode, setMode] = useState<PracticeMode>("word");
   const [source, setSource] = useState<Source>(() => (Object.keys(progress.cards).length ? "recent" : "path"));
   const [ranges, setRanges] = useState<Record<string, [number, number]>>({});
   const book = atlas.book ?? "7a";
@@ -127,11 +131,33 @@ export function Practice() {
       /* optional */
     }
   };
-  const [round, setRound] = useState<{ entries: Entry[]; key: number } | null>(null);
+  const [round, setRound] = useState<{ questions: Question[]; review: boolean; key: number } | null>(null);
   const [quiz, setQuiz] = useState<{ items: Item[]; title: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [now, setNow] = useState(Date.now);
+  const atlasForBook = (id: string) => (id === (atlas.book ?? "") ? atlas : atlas.shelf?.find((a) => a.book === id));
+  const reviews = Object.values(progress.practiceReviews)
+    .filter((item) => atlasForBook(item.book)?.byId.has(item.id))
+    .sort((a, b) => a.due - b.due);
+  const due = reviews.filter((item) => item.due <= now);
+  const nextDue = reviews[due.length]?.due;
+
   useEffect(() => {
     window.scrollTo({ top: 0 });
-  }, [quiz]);
+  }, [quiz, round]);
+
+  useEffect(() => {
+    const refresh = () => setNow(Date.now());
+    const timer = nextDue === undefined ? undefined : window.setTimeout(refresh, Math.min(60_000, Math.max(0, nextDue - Date.now())));
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [nextDue, now]);
 
   const pool = useMemo(() => {
     const learned = Object.entries(progress.cards)
@@ -149,19 +175,50 @@ export function Practice() {
     // 短句、中文听写只算有例句的词：显示的就是实际能出的句子数，抽题也不会抽到空的
     return ids.filter((id) => {
       const w = atlas.byId.get(id);
-      return !!w && (mode === "word" || (w.media & MEDIA.ex) > 0);
+      return !!w && (mode === "word" || (w.media & MEDIA.ex) > 0 || !!atlas.peek(id)?.ex.length);
     });
   }, [atlas, progress.cards, progress.mistakes, progress.bookmarks, source, range[0], range[1], mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const start = async () => {
-    // 最近学过：从最近的 60 个里抽，练的是刚学的；其他来源：整个来源里随机抽（原来只从前 60 个抽，学习路线总是抽到第一单元）
-    const ids = shuffle(source === "recent" ? pool.slice(0, 60) : pool, hashSeed(String(Date.now()))).slice(0, 10);
-    const entries = (await prefetch(atlas, ids)).filter((e): e is Entry => !!e && (mode === "word" || e.ex.length > 0));
-    if (entries.length) setRound({ entries, key: Date.now() });
+  const start = async (prompts: PracticePrompt[], review: boolean) => {
+    if (loading || !prompts.length) return;
+    setLoading(true);
+    setLoadError(false);
+    const questions = await Promise.all(prompts.map(async (prompt) => {
+      const owner = atlasForBook(prompt.book);
+      if (!owner) return null;
+      const [entry] = await prefetch(owner, [prompt.id]);
+      if (!entry || (prompt.mode !== "word" && !entry.ex[0]?.en)) return null;
+      return { prompt, entry, atlas: owner };
+    }));
+    const ready = questions.filter((question): question is Question => question !== null);
+    setLoading(false);
+    if (ready.length) setRound({ questions: ready, review, key: Date.now() });
+    else setLoadError(true);
   };
 
+  const startRegular = () => {
+    // 最近学过：从最近的 60 个里抽，练的是刚学的；其他来源：整个来源里随机抽（原来只从前 60 个抽，学习路线总是抽到第一单元）
+    const ids = shuffle(source === "recent" ? pool.slice(0, 60) : pool, hashSeed(String(Date.now()))).slice(0, 10);
+    const prompts = ids.map((id) => {
+      const owner = atlas.words.some((w) => w.id === id) ? atlas : atlas.shelf?.find((a) => a.byId.has(id)) ?? atlas;
+      return { id, mode, book: owner.book ?? "" };
+    });
+    void start(prompts, false);
+  };
+  const startReview = () => void start(due.slice(0, 10), true);
+
   if (quiz) return <Quiz items={quiz.items} title={quiz.title} onExit={() => setQuiz(null)} />;
-  if (round) return <PaperRound key={round.key} mode={mode} entries={round.entries} onExit={() => setRound(null)} onAgain={start} />;
+  if (round) return (
+    <DictationRound
+      key={round.key}
+      questions={round.questions}
+      review={round.review}
+      onExit={() => { setNow(Date.now()); setLoadError(false); setRound(null); }}
+      onAgain={round.review ? (due.length ? startReview : undefined) : startRegular}
+      loading={loading}
+      loadError={loadError}
+    />
+  );
 
   const rounds = progress.typing.filter((t) => t.mode === mode);
   const noun = mode === "word" ? "词" : mode === "dictation" ? "短句" : "句子";
@@ -173,9 +230,22 @@ export function Practice() {
           <p className="eyebrow">练习</p>
           <ChallengeSwitch />
         </div>
-        <h1 className="display">拿出本子，写下来。</h1>
-        <p className="lede">屏幕出题，你在本子上写，写完对答案。写错的会进错词本，不会改动记忆进度。</p>
+        <h1 className="display">听一听，写一写。</h1>
+        <p className="lede">直接输入英文答案，提交后立即判分。错题会加入错词本，并安排间隔复习。</p>
       </header>
+      <section className="panel practice-review" aria-labelledby="practice-review-title">
+        <div className="practice-review-icon"><Clock size={22} aria-hidden="true" /></div>
+        <div className="practice-review-copy">
+          <p className="eyebrow">艾宾浩斯间隔复习</p>
+          <h2 id="practice-review-title">听写错题复习</h2>
+          <p className="muted" aria-live="polite">
+            {due.length ? `${due.length} 题已到期，按原题型复习。` : nextDue === undefined ? "答错 20 分钟后开启第一次复习。" : "当前没有到期错题。"}
+            {nextDue !== undefined && ` 下次复习 ${new Date(nextDue).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}。`}
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={startReview} disabled={loading || !due.length}>复习到期错题</button>
+      </section>
+      {loadError && <p role="alert" className="muted">题目暂时加载失败，请重试。</p>}
       <div className="practice-grid">
         <section className="panel">
           <h3 className="eyebrow">模式</h3>
@@ -201,7 +271,7 @@ export function Practice() {
           <p className="muted">
             {pool.length
               ? source === "path"
-                ? `${atlas.cefr[range[0]]}${range[1] !== range[0] ? ` – ${atlas.cefr[range[1]]}` : ""}，共 ${pool.length} 个${noun}，每轮随机抽 ${Math.min(10, pool.length)} 个。${mode === "sentence" ? "" : "每题都会自动朗读，家长不会读也能照着屏幕给孩子听写。"}`
+                ? `${atlas.cefr[range[0]]}${range[1] !== range[0] ? ` – ${atlas.cefr[range[1]]}` : ""}，共 ${pool.length} 个${noun}，每轮随机抽 ${Math.min(10, pool.length)} 个。${mode === "sentence" ? "" : "每题都会自动朗读。"}`
                 : source === "recent"
                   ? pool.length <= 10
                     ? `最近学过 ${pool.length} 个${noun}，每轮全部练一遍。`
@@ -211,7 +281,7 @@ export function Practice() {
                     : `共 ${pool.length} 个${noun}，每轮随机抽 10 个。`
               : `这里还没有${noun}。先去学几个${noun}，或者换成「学习路线」。`}
           </p>
-          <button className="btn btn-primary btn-xl" onClick={start} disabled={!pool.length}>
+          <button className="btn btn-primary btn-xl" onClick={startRegular} disabled={loading || !pool.length}>
             开始一轮
           </button>
         </section>
@@ -237,7 +307,7 @@ export function Practice() {
   );
 }
 
-/* ---------- 写在本子上：听或看，写下来，再对答案、自己判对错 ---------- */
+/* ---------- 在线听写 ---------- */
 
 /** 把答案里容易写错的地方标出来：本词、大写字母、标点 */
 function markTricky(sentence: string, word: string) {
@@ -255,62 +325,83 @@ function markTricky(sentence: string, word: string) {
   return out;
 }
 
-function PaperRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: Entry[]; onExit: () => void; onAgain: () => void }) {
-  const atlas = useAtlas();
+function DictationRound({ questions, review, onExit, onAgain, loading, loadError }: {
+  questions: Question[];
+  review: boolean;
+  onExit: () => void;
+  onAgain?: () => void;
+  loading: boolean;
+  loadError: boolean;
+}) {
   const settings = useStore((s) => s.settings);
   const [i, setI] = useState(0);
-  const [shown, setShown] = useState(false);
+  const [value, setValue] = useState("");
+  const [nextInterval, setNextInterval] = useState("");
   const [results, setResults] = useState<boolean[]>([]);
-  const e = entries[i];
-  const done = i >= entries.length;
-  const answer = (x: Entry) => (mode === "word" ? x.w : x.ex[0].en);
-  const say = (rate = 1) =>
-    mode === "word" ? play(atlas.audio(e, settings.accent), e.w, settings.accent, rate) : play(atlas.audio(e, "ex"), e.ex[0].en, settings.accent, rate);
+  const question = questions[i];
+  const correct = results[i];
+  const mode = question?.prompt.mode ?? questions[0].prompt.mode;
+  const say = (rate = 1) => {
+    if (!question) return;
+    const { atlas, entry } = question;
+    void play(atlas.audio(entry, mode === "word" ? settings.accent : "ex"), answer(question), settings.accent, rate);
+  };
 
   useEffect(() => {
     // 中文听写不自动读，读了就成了短句听写
-    if (!done && mode !== "sentence") void say();
+    if (question && mode !== "sentence") say();
   }, [i]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => stopAudio(), []);
 
-  const judge = (ok: boolean) => {
+  const judge = () => {
+    if (!question || correct !== undefined || !value.trim()) return;
+    const { prompt } = question;
+    const ok = matchesDictation(value, answer(question), mode !== "word");
     if (settings.sfx) void cue(ok ? "correct" : "wrong");
     const next = [...results, ok];
     setResults(next);
-    // 写错的词进错词本，以后在「错词本」里还能再练
-    if (!ok) store.progress((p) => ({ ...p, mistakes: [e.id, ...p.mistakes.filter((x) => x !== e.id)].slice(0, 300) }));
-    if (i + 1 >= entries.length) {
-      const right = next.filter(Boolean).length;
-      store.progress((p) => ({
-        ...p,
-        typing: [...p.typing, { at: Date.now(), mode, items: entries.length, wpm: 0, accuracy: Math.round((right / entries.length) * 100) }].slice(-500),
-      }));
-      if (settings.sfx) void cue("complete");
-    }
-    setShown(false);
+    const now = Date.now();
+    const practiceReviews = store.get().progress.practiceReviews;
+    const updated = updatePracticeReview(practiceReviews, prompt, ok, now);
+    const roundFinished = !review && next.length === questions.length;
+    if (updated !== practiceReviews || roundFinished) store.progress((p) => ({
+      ...p,
+      practiceReviews: updated,
+      mistakes: ok ? p.mistakes : [prompt.id, ...p.mistakes.filter((id) => id !== prompt.id)].slice(0, 300),
+      typing: roundFinished
+        ? [...p.typing, { at: now, mode, items: questions.length, wpm: 0, accuracy: Math.round(next.filter(Boolean).length / questions.length * 100) }].slice(-500)
+        : p.typing,
+    }));
+    const due = updated[practiceKey(prompt)]?.due;
+    setNextInterval(due === undefined ? "" : formatInterval(due - now));
+  };
+
+  const advance = () => {
+    stopAudio();
+    if (i + 1 === questions.length && settings.sfx) void cue("complete");
+    setValue("");
     setI(i + 1);
   };
 
-  const unit = mode === "word" ? "个" : "句";
-  if (done) {
+  if (!question) {
     const right = results.filter(Boolean).length;
-    const wrong = entries.filter((_, k) => !results[k]);
+    const wrong = questions.filter((_, k) => !results[k]);
     return (
       <div className="page practice">
         <section className="panel typing-done">
-          <p className="eyebrow">{MODES.find((m) => m[0] === mode)?.[1]}完成</p>
+          <p className="eyebrow">{review ? "错题复习" : modeName(mode)}完成</p>
           <h1 className="display">
             {right}
             <small>
-              /{entries.length} {unit}全对
+              /{questions.length} 题答对
             </small>
           </h1>
           {wrong.length > 0 && (
             <div className="paper-wrong">
-              <p className="lede">这几{unit}写错了，已经放进错词本：</p>
+              <p className="lede">以下错题已加入错词本，20 分钟后可以复习。</p>
               <ul>
                 {wrong.map((w) => (
-                  <li key={w.id} lang="en">
+                  <li key={practiceKey(w.prompt)} lang="en">
                     {answer(w)}
                   </li>
                 ))}
@@ -321,18 +412,33 @@ function PaperRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: E
             <button className="btn btn-ghost" onClick={onExit}>
               返回
             </button>
-            <button className="btn btn-primary btn-xl" onClick={onAgain} autoFocus>
-              <RotateCcw size={18} /> 再来一轮
-            </button>
+            {onAgain && (
+              <button className="btn btn-primary btn-xl" onClick={onAgain} disabled={loading}>
+                <RotateCcw size={18} /> {review ? "继续复习" : "再来一轮"}
+              </button>
+            )}
           </div>
+          {loadError && <p role="alert" className="muted">题目暂时加载失败，请重试。</p>}
         </section>
       </div>
     );
   }
 
-  const parts = markTricky(answer(e), e.w);
+  const { atlas, entry: e } = question;
+  const parts = correct === undefined ? [] : markTricky(answer(question), e.w);
   const tip =
-    mode === "word" ? "听发音、看图和意思，在本子上写出这个单词。" : mode === "dictation" ? "听英文句子，在本子上写下整句。注意大小写和标点。" : "看中文意思，在本子上写出英文句子。注意大小写和标点。";
+    mode === "word" ? "听发音，根据提示输入英文单词。" : mode === "dictation" ? "听录音，输入完整的英文句子。注意大小写和标点。" : "根据中文提示输入英文例句。按词库例句判分，注意大小写和标点。";
+  const inputProps = {
+    id: "dictation-answer",
+    lang: "en",
+    value,
+    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValue(event.target.value),
+    autoCapitalize: "off",
+    autoCorrect: "off",
+    autoComplete: "off",
+    spellCheck: false,
+    autoFocus: true,
+  };
   return (
     <div className="page practice typing paper">
       <header className="typing-top">
@@ -341,19 +447,19 @@ function PaperRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: E
         </button>
         <AmbiencePicker />
         <div className="learn-progress">
-          <span style={{ width: `${(i / entries.length) * 100}%` }} />
+          <span style={{ width: `${(results.length / questions.length) * 100}%` }} />
         </div>
         <span className="typing-meter">
-          第 <b>{i + 1}</b>/{entries.length} {unit}
+          {review && `${modeName(mode)} · `}第 <b>{i + 1}</b>/{questions.length} 题
         </span>
       </header>
       <section className="paper-stage">
         <p className="paper-tip">{tip}</p>
         {mode === "word" && (
           <div className="paper-cue">
-            <Illustration src={atlas.img(e)} word={e.w} topic={0} eager />
+            <Illustration key={i} src={atlas.img(e)} word={e.w} topic={0} eager hideWord />
             <p>
-              <span className="pos">{e.senses[0].pos}</span> {e.senses[0].zh}
+              <span className="pos">{e.senses[0]?.pos}</span> {e.senses[0]?.zh}
             </p>
           </div>
         )}
@@ -369,12 +475,29 @@ function PaperRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: E
           )}
         </div>
 
-        {!shown ? (
-          <button className="btn btn-ghost btn-xl paper-reveal" onClick={() => setShown(true)}>
-            <Eye size={20} /> 写好了，看答案
-          </button>
+        {correct === undefined ? (
+          <form
+            key={i}
+            className="paper-form"
+            onSubmit={(event) => { event.preventDefault(); judge(); }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" || event.target instanceof HTMLButtonElement || event.nativeEvent.isComposing || event.shiftKey) return;
+              event.preventDefault();
+              if (!event.repeat) judge();
+            }}
+          >
+            <label htmlFor="dictation-answer">你的答案</label>
+            {mode === "word" ? <input {...inputProps} placeholder="输入英文单词" /> : <textarea {...inputProps} rows={2} placeholder="输入完整的英文句子" />}
+            <button className="btn btn-primary" type="submit" disabled={!value.trim()}><Check size={18} /> 提交答案</button>
+          </form>
         ) : (
           <div className="paper-answer">
+            <div role="status" className={`paper-verdict ${correct ? "is-correct" : "is-wrong"}`}>
+              {correct ? <Check size={20} aria-hidden="true" /> : <X size={20} aria-hidden="true" />}
+              <b>{correct ? "回答正确" : "答错了 · 已加入错词本"}</b>
+            </div>
+            {!correct && <p className="paper-submitted">你的答案 <span lang="en">{value}</span></p>}
+            {!correct && <p className="eyebrow">参考答案</p>}
             <p className={`paper-sentence ${mode === "word" ? "is-word" : ""}`} lang="en">
               {parts.map((p, k) => (p.kind ? <mark key={k} className={`pm-${p.kind}`}>{p.text}</mark> : <span key={k}>{p.text}</span>))}
             </p>
@@ -390,15 +513,11 @@ function PaperRound({ mode, entries, onExit, onAgain }: { mode: Mode; entries: E
                 </p>
               </>
             )}
-            <p className="muted">{mode === "word" ? "一个字母一个字母地对照，全对才算对。" : "逐个对照，单词拼写、大小写、标点都对，才算全对。"}</p>
-            <div className="paper-judge">
-              <button className="btn btn-ghost btn-xl" onClick={() => judge(false)}>
-                <X size={20} /> 有错
-              </button>
-              <button className="btn btn-primary btn-xl" onClick={() => judge(true)}>
-                <Check size={20} /> 全对
-              </button>
-            </div>
+            {nextInterval && <p className="muted">{nextInterval}后可以复习这道题。</p>}
+            {review && correct && !nextInterval && <p className="muted">这道题已完成全部间隔复习。</p>}
+            <button className="btn btn-primary paper-next" onClick={advance} autoFocus>
+              {i + 1 === questions.length ? "查看结果" : "下一题"} <ArrowRight size={18} />
+            </button>
           </div>
         )}
       </section>

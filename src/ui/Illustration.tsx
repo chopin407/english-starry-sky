@@ -10,6 +10,7 @@ export function Illustration({
   topic = 0,
   className = "",
   eager = false,
+  hideWord = false,
   alt,
 }: {
   src: string | null;
@@ -17,6 +18,7 @@ export function Illustration({
   topic?: number;
   className?: string;
   eager?: boolean;
+  hideWord?: boolean;
   alt?: string;
 }) {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
@@ -26,6 +28,7 @@ export function Illustration({
   const skinSrc = src && skin !== "base" ? src.replace(/\/(img|thumb)\/([^/]+)$/, `/skins/${skin}/$1/$2`) : null;
   const useSkinSrc = !!skinSrc && skinSrc !== src && skinMissing !== skinSrc;
   const showImg = src && state !== "error";
+  if (!showImg && hideWord) return null;
   return (
     <figure className={`illo ${showImg && state === "ok" ? "is-loaded" : ""} ${className}`}>
       {showImg ? (

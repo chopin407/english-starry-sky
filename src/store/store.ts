@@ -3,6 +3,7 @@ import type { Accent } from "../atlas/types";
 import type { CardState, Grade } from "./srs";
 import { emptyGame, sanitizeGame, type GameState } from "./gameState";
 import { AMBIENCE, type AmbienceId } from "../lib/ambience";
+import { practiceKey, validPracticeReview, type PracticeMode, type PracticeReview } from "./practiceReview";
 
 export type QuizKind = "meaning" | "picture" | "listen" | "spell";
 export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind; retry?: boolean; options?: string[] };
@@ -30,8 +31,8 @@ export interface DayStat {
 
 export interface TypingRound {
   at: number;
-  /** paper：纸笔听写，accuracy 是自己判「全对」的句子占比，wpm 记 0 */
-  mode: "word" | "sentence" | "dictation" | "paper";
+  /** paper 是旧版纸笔听写记录。 */
+  mode: PracticeMode | "paper";
   items: number;
   wpm: number;
   accuracy: number;
@@ -54,6 +55,7 @@ export interface Progress {
   session: ActiveSession | null;
   /** Rolling list of recent mistakes, newest first. */
   mistakes: string[];
+  practiceReviews: Record<string, PracticeReview>;
   /** 宝箱、碎片、收藏品 */
   game: GameState;
   /** 挑战模式 · 真题阅读的成绩：文章 id → 第一次的成绩 */
@@ -110,6 +112,7 @@ export const emptyProgress = (datasetId: string): Progress => ({
   typing: [],
   session: null,
   mistakes: [],
+  practiceReviews: {},
   game: emptyGame(),
   reading: {},
 });
@@ -165,6 +168,13 @@ export function sanitizeProgress(v: unknown, datasetId: string): Progress {
   if (isObj(v.cards)) for (const [k, c] of Object.entries(v.cards)) if (validCard(c)) out.cards[k] = c;
   if (Array.isArray(v.bookmarks)) out.bookmarks = v.bookmarks.filter((x): x is string => typeof x === "string").slice(0, 20000);
   if (Array.isArray(v.mistakes)) out.mistakes = v.mistakes.filter((x): x is string => typeof x === "string").slice(0, 300);
+  if (isObj(v.practiceReviews)) {
+    for (const item of Object.values(v.practiceReviews)) {
+      if (!validPracticeReview(item)) continue;
+      const { id, book, mode, stage, due } = item;
+      out.practiceReviews[practiceKey(item)] = { id, book, mode, stage, due };
+    }
+  }
   if (isObj(v.days))
     for (const [k, d] of Object.entries(v.days))
       if (/^\d{4}-\d{2}-\d{2}$/.test(k) && isObj(d) && num(d.n, 0) && num(d.r, 0) && num(d.c, 0) && num(d.t, 0))
