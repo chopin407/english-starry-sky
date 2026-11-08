@@ -70,7 +70,14 @@ export function Gate() {
   };
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (guest) return setGuest(true);
+    if (guest) {
+      try {
+        setGuest(true);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+      return;
+    }
     void (reg ? signUp() : enter());
   };
   const switchMode = (m: "login" | "register" | "guest") => {

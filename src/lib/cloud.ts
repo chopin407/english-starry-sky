@@ -2,12 +2,14 @@
    第一次进来要改成自己的）。账号内部仍是「班级 + 编号」。做题记录自动同步到腾讯云开发，换手机输入同样的名字和密码就能找回。
    密码只在云函数里核对；本机只存登录后发的 token，不存密码。 */
 import { useSyncExternalStore } from "react";
-import { exportBackup, importBackup, onEdit, resetProgress } from "../store/store";
+import { applySyncedProgress, exportBackup, importBackup, onEdit, resetProgress, store } from "../store/store";
 import { exportQa, importQa, onQaChange } from "../pages/Points";
+import { mergeLanSnapshots, sameSnapshot, type LanSnapshot } from "./lanProgress";
 
 /** 腾讯云开发的环境号，写在 .env.local 的 VITE_CLOUD_ENV 里（不进代码仓库）。
  *  没配置时网页照样能用：直接以游客身份进入，进度只存在本机浏览器。 */
-export const CLOUD_ENV: string = import.meta.env.VITE_CLOUD_ENV || "";
+const CLOUD_ENV: string = import.meta.env.VITE_CLOUD_ENV || "";
+const LAN_BUILD = import.meta.env.VITE_LAN_SYNC === "1";
 export const DEFAULT_PASS = "123456";
 /** 名单外自己注册的同学都在这个组：不进老师页、不出老师奖励券 */
 export const FREE_CLASS = "自由学习";
@@ -30,6 +32,10 @@ const REMOTE_KEY = "qishang:remoteAt";
 /** 本机最近一次改动、最近一次传上去的改动（手机的钟） */
 const TOUCHED_KEY = "qishang:touched";
 const UPLOADED_KEY = "qishang:uploaded";
+const LAN_ENABLED_KEY = "qishang:lan-enabled";
+const LAN_ACCOUNT_KEY = "qishang:lan-account";
+const LAN_OWNER_KEY = "qishang:lan-owner";
+const LAN_CHECKPOINT_KEY = "qishang:lan-progress";
 
 const readNum = (k: string) => {
   try {
@@ -47,26 +53,66 @@ const writeKey = (k: string, v: string | null) => {
   }
 };
 
-/** 本机上一次登录的是谁（旧版用班级口令登录的也算），换人登录时用来判断要不要清本机进度 */
-let lastUser: { cls: string; code: string } | null = null;
-let account: Account | null = (() => {
+let lan = LAN_BUILD && readNum(LAN_ENABLED_KEY) === 1;
+export let accountsEnabled = lan || !!CLOUD_ENV;
+const accountKey = () => lan ? LAN_ACCOUNT_KEY : ACCOUNT_KEY;
+
+async function fetchLan(path: string, options: RequestInit, timeout: number) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeout);
   try {
-    const a = JSON.parse(localStorage.getItem(ACCOUNT_KEY) || "null");
-    if (a && typeof a.cls === "string" && typeof a.code === "string") lastUser = { cls: a.cls, code: a.code };
-    return lastUser && typeof a.token === "string" ? (a as Account) : null;
+    const response = await fetch(`${import.meta.env.BASE_URL}${path}`, { ...options, cache: "no-store", signal: controller.signal });
+    return { response, data: await response.json() };
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+/** 本机上一次登录的是谁，换人登录时用来判断要不要清本机进度 */
+let lastUser: { cls: string; code: string } | null = null;
+function readAccount(): Account | null {
+  try {
+    const a = JSON.parse(localStorage.getItem(accountKey()) || "null");
+    const owner = a ?? (lan ? JSON.parse(localStorage.getItem(LAN_OWNER_KEY) || "null") : null);
+    lastUser = owner && typeof owner.cls === "string" && typeof owner.code === "string" ? { cls: owner.cls, code: owner.code } : null;
+    return a && lastUser && typeof a.token === "string" ? (a as Account) : null;
   } catch {
     return null;
   }
-})();
+}
 
-let guest = (() => {
-  if (!CLOUD_ENV) return true; // 没配云端：只能当游客
+function readGuest() {
+  if (!accountsEnabled) return true;
   try {
     return localStorage.getItem(GUEST_KEY) === "1";
   } catch {
     return false;
   }
-})();
+}
+
+let account = readAccount();
+let guest = readGuest();
+
+let boot: Promise<void> | undefined;
+export function configureAccountService() {
+  if (!LAN_BUILD) return Promise.resolve();
+  boot ??= (async () => {
+    try {
+      const { response, data: { enabled } } = await fetchLan("lan-sync.json", {}, 2500);
+      if (!response.ok) return;
+      if (typeof enabled !== "boolean") return;
+      writeKey(LAN_ENABLED_KEY, enabled ? "1" : null);
+      if (enabled === lan) return;
+      lan = enabled;
+      accountsEnabled = lan || !!CLOUD_ENV;
+      account = readAccount();
+      guest = readGuest();
+    } catch {
+      // Keep the last known service when opening the site offline.
+    }
+  })();
+  return boot;
+}
 
 export type SyncState = "idle" | "saving" | "saved" | "offline";
 let sync: { state: SyncState; at: number } = { state: "idle", at: readNum(REMOTE_KEY) };
@@ -86,6 +132,14 @@ export const noTeacher = (a: Account | null) => !a || a.cls === FREE_CLASS;
 
 /** 以游客身份进入（或退回登录页）。游客的进度在本机浏览器里，登录或注册后会一起带上云端 */
 export function setGuest(v: boolean) {
+  if (lan && v && lastUser) {
+    // An expired account's unuploaded work belongs to that account.
+    if (!sameSnapshot(captureLan(), checkpointFor(lastUser.code)?.base))
+      throw new CloudError("本机还有未同步的学习记录，请先重新登录原账号");
+    clearLocal();
+    lastUser = null;
+    writeKey(LAN_OWNER_KEY, null);
+  }
   guest = v;
   writeKey(GUEST_KEY, v ? "1" : null);
   emit();
@@ -138,6 +192,7 @@ export class CloudError extends Error {
  */
 let warming: Promise<unknown> | null = null;
 export function warmUp() {
+  if (lan || !CLOUD_ENV) return;
   warming ??= getCaller()
     .then((call) => call({ action: "ping" }))
     .catch(() => {
@@ -147,6 +202,15 @@ export function warmUp() {
 
 export async function callApi(data: Record<string, unknown>) {
   try {
+    if (lan) {
+      const { response, data: body } = await fetchLan("api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }, 12000);
+      if (!response.ok) throw new CloudError(body.error || "局域网同步失败", response.status);
+      return body as Record<string, unknown>;
+    }
     return await (await getCaller())(data);
   } catch (e) {
     if (e instanceof CloudError) throw e;
@@ -159,6 +223,71 @@ export async function callApi(data: Record<string, unknown>) {
 interface Remote {
   updated: number;
   data: { progress?: unknown; settings?: unknown; qa?: unknown } | null;
+}
+
+type LanRemote = { revision: number; updated: number; data?: LanSnapshot; conflict?: boolean };
+type LanPending = { id: string; data: LanSnapshot };
+type LanCheckpoint = { owner: string; revision: number; base: LanSnapshot; pending?: LanPending };
+
+let checkpoint: LanCheckpoint | null = (() => {
+  try { return JSON.parse(localStorage.getItem(LAN_CHECKPOINT_KEY) || "null"); }
+  catch { return null; }
+})();
+
+const checkpointFor = (code: string) => checkpoint?.owner === code ? checkpoint : null;
+function writeCheckpoint(value: LanCheckpoint | null) {
+  checkpoint = value;
+  writeKey(LAN_CHECKPOINT_KEY, value && JSON.stringify(value));
+}
+
+function captureLan(): LanSnapshot {
+  const { progress, settings } = store.get();
+  return JSON.parse(JSON.stringify({
+    app: "word-atlas", version: 2, progress: { ...progress, session: null }, settings, qa: exportQa(),
+  }));
+}
+
+async function syncLan(a: Account) {
+  let remote: LanRemote | undefined;
+  for (let attempt = 0; attempt < 6 && account === a; attempt++) {
+    let local = checkpointFor(a.code);
+    if (local?.pending) {
+      const pending = local.pending;
+      const result = await callApi({ action: "save", ...auth(a), revision: local.revision, mutation: pending.id, data: pending.data }) as LanRemote;
+      if (account !== a) return;
+      if (result.conflict) {
+        local = { owner: a.code, revision: local.revision, base: local.base };
+        writeCheckpoint(local);
+        remote = result;
+      } else {
+        writeCheckpoint({ owner: a.code, revision: result.revision, base: pending.data });
+        setSync("saved", result.updated);
+        continue;
+      }
+    }
+    remote ??= await callApi({ action: "sync", ...auth(a), revision: local?.revision }) as LanRemote;
+    if (account !== a) return;
+    if (remote.data) {
+      const current = captureLan();
+      const merged = mergeLanSnapshots(local?.base ?? null, current, remote.data);
+      if (!sameSnapshot(current, merged)) quietly(() => {
+        applySyncedProgress(merged.progress, merged.settings);
+        importQa(merged.qa);
+      });
+      local = { owner: a.code, revision: remote.revision, base: remote.data };
+      writeCheckpoint(local);
+    }
+    if (!local) throw new CloudError("服务器没有返回学习存档");
+    const data = captureLan();
+    if (sameSnapshot(data, local.base)) {
+      setSync("saved", remote.updated);
+      return;
+    }
+    const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    writeCheckpoint({ ...local, pending: { id, data } });
+    remote = undefined;
+  }
+  if (account === a) throw new CloudError("其他设备正在同步，请稍后再试");
 }
 
 /** 正在把云端数据写回本机，这期间的改动不算本机改动 */
@@ -198,7 +327,8 @@ function setAccount(a: Account | null) {
     writeKey(GUEST_KEY, null);
   }
   if (a) lastUser = { cls: a.cls, code: a.code };
-  writeKey(ACCOUNT_KEY, a && JSON.stringify(a));
+  if (lan && a) writeKey(LAN_OWNER_KEY, JSON.stringify(lastUser));
+  writeKey(accountKey(), a && JSON.stringify(a));
   emit();
 }
 
@@ -210,6 +340,7 @@ function clearLocal() {
     importQa({});
   });
   for (const k of [REMOTE_KEY, TOUCHED_KEY, UPLOADED_KEY]) writeKey(k, null);
+  if (lan) writeCheckpoint(null);
 }
 
 /** 欢迎语、「我的」页上怎么称呼：有姓名用姓名，没有就用班级编号 */
@@ -230,9 +361,14 @@ export async function login(name: string, pass: string, cls?: string): Promise<A
   const code = String(r.code);
   cls = String(r.cls);
   // 换了一个学生：先清掉本机上一位的进度，免得混在一起
-  if (lastUser && (lastUser.cls !== cls || lastUser.code !== code)) clearLocal();
+  if (lastUser && (lastUser.cls !== cls || lastUser.code !== code)) {
+    if (lan && !sameSnapshot(captureLan(), checkpointFor(lastUser.code)?.base))
+      throw new CloudError("本机还有上一账号未同步的学习记录，请先登录原账号完成同步");
+    clearLocal();
+  }
   setAccount({ cls, code, token: r.token, name: r.name || "", mustChange: r.mustChange });
-  reconcile(r);
+  if (lan) void save(true);
+  else reconcile(r);
   return account!;
 }
 
@@ -241,12 +377,18 @@ export async function login(name: string, pass: string, cls?: string): Promise<A
  * 之前当游客学的进度不清掉，会作为这个账号的第一份进度传上云端。
  */
 export async function register(name: string, pass: string): Promise<Account> {
-  const r = (await callApi({ action: "register", name, pass })) as unknown as Remote & { token: string; cls: string; code: string; name?: string };
+  if (lan && lastUser) throw new CloudError("请先登录原账号并完成同步，再注册新账号");
+  const data = lan ? captureLan() : undefined;
+  const r = (await callApi({ action: "register", name, pass, data })) as unknown as Remote & { token: string; cls: string; code: string; name?: string; revision: number };
   const code = String(r.code);
   const cls = String(r.cls);
   if (lastUser && (lastUser.cls !== cls || lastUser.code !== code)) clearLocal();
   setAccount({ cls, code, token: r.token, name: r.name || name, mustChange: false });
-  reconcile(r);
+  if (data) {
+    writeCheckpoint({ owner: code, revision: r.revision, base: data });
+    setSync("saved", r.updated);
+    if (!sameSnapshot(captureLan(), data)) void save(true);
+  } else reconcile(r);
   return account!;
 }
 
@@ -262,8 +404,21 @@ const auth = (a: Account) => ({ cls: a.cls, code: a.code, token: a.token });
 
 export async function logout() {
   await save();
+  if (lan) {
+    if (!account || sync.state !== "saved") throw new CloudError("学习记录尚未同步，请联网后重试");
+    const a = account;
+    await callApi({ action: "logout", ...auth(a) });
+    if (!sameSnapshot(captureLan(), checkpointFor(a.code)?.base)) {
+      forget();
+      throw new CloudError("退出时有新记录，请重新登录同步");
+    }
+  }
   clearLocal();
   forget();
+  if (lan) {
+    lastUser = null;
+    writeKey(LAN_OWNER_KEY, null);
+  }
   setSync("idle", 0);
 }
 
@@ -272,19 +427,24 @@ let inflight: Promise<void> | null = null;
 
 export async function save(force = false): Promise<void> {
   window.clearTimeout(timer);
-  if (inflight) await inflight;
-  if (!account || (!force && !dirty())) return;
+  while (inflight) await inflight;
+  if (!account || (!lan && !force && !dirty())) return;
   const a = account;
   const touched = readNum(TOUCHED_KEY);
   inflight = (async () => {
     setSync("saving");
     try {
+      if (lan) {
+        await syncLan(a);
+        return;
+      }
       const data = { ...JSON.parse(exportBackup()), qa: exportQa() };
       const r = await callApi({ action: "save", ...auth(a), data });
       writeKey(REMOTE_KEY, String(Number(r.updated) || 0));
       writeKey(UPLOADED_KEY, String(touched)); // 上传期间又改了的话 touched 更大，下一轮再传
       setSync("saved", Number(r.updated) || Date.now());
     } catch (e) {
+      if (account !== a) return;
       setSync("offline");
       if (e instanceof CloudError && e.status === 403) forget(); // 密码在别的手机改了、或老师重置了：回登录页重新输
     } finally {
@@ -298,19 +458,27 @@ function touch() {
   if (adopting || !account) return;
   writeKey(TOUCHED_KEY, String(Date.now()));
   window.clearTimeout(timer);
-  timer = window.setTimeout(() => void save(), 15000);
+  timer = window.setTimeout(() => void save(), lan ? 2000 : 15000);
 }
 
 if (typeof window !== "undefined") {
   onEdit(touch);
   onQaChange(touch);
-  document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && void save());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") void save();
+    else if (lan) void refresh();
+  });
   window.addEventListener("online", () => void save());
+  window.addEventListener("focus", () => lan && void refresh());
+  if (LAN_BUILD) window.setInterval(() => {
+    if (lan && account && document.visibilityState === "visible" && !inflight) void refresh();
+  }, 30000);
 }
 
 /** 每次打开网页：看看云端有没有别的手机传上来的新进度 */
 export async function refresh() {
   if (!account) return;
+  if (lan) return save(true);
   try {
     const r = (await callApi({ action: "sync", ...auth(account) })) as unknown as Remote & { name?: string; mustChange: boolean };
     if (!!r.mustChange !== !!account.mustChange || (r.name || "") !== (account.name || "")) setAccount({ ...account, name: r.name || "", mustChange: r.mustChange });

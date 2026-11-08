@@ -6,7 +6,7 @@ import { dayKey, store, useStore, type Settings } from "../store/store";
 import { PasswordForm } from "../ui/Gate";
 import { Sheet } from "../ui/Sheet";
 import { streakOf } from "./Today";
-import { CLOUD_ENV, displayName, FREE_CLASS, logout, save, setGuest, useAccount, useGuest, useSync } from "../lib/cloud";
+import { accountsEnabled, displayName, FREE_CLASS, logout, save, setGuest, useAccount, useGuest, useSync } from "../lib/cloud";
 
 export function Me({ privateAvailable }: { privateAvailable: boolean }) {
   const atlas = useAtlas();
@@ -189,17 +189,18 @@ function AccountBar() {
   const guest = useGuest();
   const sync = useSync();
   const [pw, setPw] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
   if (guest)
     return (
       <section className="account-bar is-guest">
         <div>
           <b>游客</b>
           <small className="is-warn">
-            学习数据只存在这台设备的浏览器里，请不要清除浏览器缓存，否则进度会丢失。{CLOUD_ENV && "注册账号后进度会一起带上云端。"}
+            游客学习记录保存在当前浏览器。{accountsEnabled && "注册账号时会上传当前学习记录，换设备登录后可继续学习。"}
           </small>
         </div>
         {/* 没配云端（开源版直接运行）就只有游客，不显示登录按钮 */}
-        {CLOUD_ENV && (
+        {accountsEnabled && (
           <button className="btn btn-primary btn-sm" onClick={() => setGuest(false)}>
             注册 / 登录
           </button>
@@ -209,10 +210,15 @@ function AccountBar() {
   if (!account) return null;
   const time = sync.at ? new Date(sync.at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "";
   const status =
-    sync.state === "saving" ? "正在同步…" : sync.state === "offline" ? "没连上网，联网后会自动同步" : time ? `已同步到云端 · ${time}` : "进度会自动同步到云端";
+    sync.state === "saving" ? "正在同步…" : sync.state === "offline" ? "暂未同步，学习记录已保留在本机" : time ? `已同步到服务器 · ${time}` : "进度会自动同步到服务器";
   const out = async () => {
     if (!confirm("退出后，这台手机上的进度会清掉（云端还在）。下次输入同样的名字和密码就能找回。确定退出？")) return;
-    await logout();
+    setLogoutError("");
+    try {
+      await logout();
+    } catch (err) {
+      setLogoutError((err as Error).message);
+    }
   };
   return (
     <section className="account-bar">
@@ -222,6 +228,7 @@ function AccountBar() {
           {account.cls === FREE_CLASS && <em className="account-tag">自由学习</em>}
         </b>
         <small className={sync.state === "offline" ? "is-warn" : ""}>{status}</small>
+        {logoutError && <small role="alert" className="is-warn">{logoutError}</small>}
       </div>
       {sync.state === "offline" && (
         <button className="btn btn-ghost btn-sm" onClick={() => void save(true)}>

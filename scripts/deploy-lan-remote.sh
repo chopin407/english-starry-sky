@@ -24,8 +24,15 @@ switching=0
 
 start_release() {
   local dir="$1" service_port="$2"
-  pm2 start "$dir/serve-lan.py" --name "$app" --interpreter "$python" --cwd "$dir/site" \
-    -- "$service_port" 9>&-
+  local interpreter="$python"
+  local args=("$service_port")
+  if [[ -f "$root/mysql-sync.json" && -f "$dir/lan_sync.py" ]]; then
+    interpreter="$root/.sync-venv/bin/python"
+    args+=(--sync-config "$root/mysql-sync.json")
+    [[ -x "$interpreter" ]] || { echo 'Missing MySQL sync virtual environment.' >&2; return 1; }
+  fi
+  pm2 start "$dir/serve-lan.py" --name "$app" --interpreter "$interpreter" --cwd "$dir/site" \
+    -- "${args[@]}" 9>&-
 }
 
 healthy() {
@@ -35,6 +42,8 @@ healthy() {
   for ((attempt = 0; attempt < 15; attempt++)); do
     if actual="$(curl -fsS --max-time 2 "$url/release.txt" 2>/dev/null)" && [[ "$actual" == "$expected" ]] &&
         curl -fsS --max-time 2 -o /dev/null "$url/" &&
+        { [[ ! -f "$root/mysql-sync.json" || ! -f "$dir/lan_sync.py" ]] ||
+          curl -fsS --max-time 5 -o /dev/null "$url/api/health"; } &&
         audio_response="$(curl -fsS --max-time 2 -r 0-1 -o /dev/null -w '%{http_code}:%{size_download}' \
           "$url/lessons/7a/starter-unit-1-a-2a.mp3")" && [[ "$audio_response" == 206:2 ]]; then
       return 0
@@ -139,6 +148,10 @@ fi
 for file in serve-lan.py site/index.html site/version.json site/atlas/index.json site/lessons/7a/starter-unit-1-a-2a.mp3; do
   [[ -s "$staged/$file" ]] || { echo "Missing release file: $file" >&2; exit 1; }
 done
+if [[ -f "$root/mysql-sync.json" && ! -s "$staged/lan_sync.py" ]]; then
+  echo 'This archive predates MySQL sync. Build a new archive before deploying.' >&2
+  exit 1
+fi
 printf '%s\n' "$release" > "$staged/site/release.txt"
 printf '%s\n' "$port" > "$staged/port"
 [[ ! -e "$target" && ! -L "$target" ]] || { echo "Release already exists: $target" >&2; exit 1; }

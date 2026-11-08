@@ -92,9 +92,13 @@ export const onQaChange = (f: () => void) => {
 /** 备份 / 恢复时一起带上考点进度 */
 export const exportQa = () => qa;
 export function importQa(v: unknown) {
-  if (v && typeof v === "object") {
+  if (v && typeof v === "object" && !Array.isArray(v)) {
     qa = v as Record<string, Qa>;
-    localStorage.setItem(KEY, JSON.stringify(qa));
+    try {
+      localStorage.setItem(KEY, JSON.stringify(qa));
+    } catch {
+      /* The current session can still use the synced records. */
+    }
     subs.forEach((f) => f());
   }
 }

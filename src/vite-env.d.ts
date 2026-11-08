@@ -8,4 +8,5 @@ declare const __VERSION__: string;
 interface ImportMetaEnv {
   /** 腾讯云开发环境号（.env.local），不填就只有游客模式 */
   readonly VITE_CLOUD_ENV?: string;
+  readonly VITE_LAN_SYNC?: string;
 }

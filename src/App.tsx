@@ -16,7 +16,7 @@ import { Challenge } from "./pages/Challenge";
 import { PointsPage } from "./pages/Points";
 import { Today } from "./pages/Today";
 import { Teacher } from "./pages/Teacher";
-import { noTeacher, refresh, useAccount, useGuest, warmUp } from "./lib/cloud";
+import { configureAccountService, noTeacher, refresh, useAccount, useGuest, warmUp } from "./lib/cloud";
 import { setCouponsOff } from "./store/game";
 import { Gate, MustChangePassword } from "./ui/Gate";
 import { cue } from "./lib/sound";
@@ -84,8 +84,8 @@ export default function App() {
   useTheme();
 
   useEffect(() => {
-    Promise.all(BOOKS.filter((b) => b.ready).map((b) => loadOpenAtlas(b.id))).then(
-      (all) => {
+    Promise.all([configureAccountService(), Promise.all(BOOKS.filter((b) => b.ready).map((b) => loadOpenAtlas(b.id)))]).then(
+      ([, all]) => {
         setShelf(all);
         if (import.meta.env.DEV) loadPrivateAtlas(all[0]).then(setPriv, () => null);
       },

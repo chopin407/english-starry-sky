@@ -30,7 +30,7 @@ def build_site(site):
     subprocess.run(
         [npm, "run", "build", "--", "--outDir", str(site.relative_to(ROOT))],
         cwd=ROOT,
-        env={**os.environ, "ATLAS_BASE": "./"},
+        env={**os.environ, "ATLAS_BASE": "./", "VITE_LAN_SYNC": "1"},
         check=True,
     )
     for name in REQUIRED:
@@ -51,6 +51,7 @@ def add_built_site(package, site, base, reused):
         return entry
 
     package.add(ROOT / "scripts/serve-lan.py", arcname="serve-lan.py", filter=regular_entry)
+    package.add(ROOT / "scripts/lan_sync.py", arcname="lan_sync.py", filter=regular_entry)
     package.add(site, arcname="site", filter=select)
 
 
@@ -62,7 +63,7 @@ def add_existing_archive(package, source, base, reused):
             regular_entry(entry)
             name = entry.name
             path = PurePosixPath(name)
-            if ((name != "serve-lan.py" and (not path.parts or path.parts[0] != "site")) or
+            if ((name not in ("serve-lan.py", "lan_sync.py") and (not path.parts or path.parts[0] != "site")) or
                     path.as_posix() != name or ".." in path.parts or "\\" in name or name in seen):
                 raise ValueError(f"Unexpected path in full release archive: {name}")
             seen.add(name)

@@ -41,6 +41,27 @@ Linux 服务器需要 Bash、Node.js、PM2、Python 3、`curl`、`tar` 和 `floc
 
 发布脚本会在暂存目录组装完整站点，再切换 `english-starry-sky` PM2 进程。确认首页、版本标记和课文音频分段请求通过后，写入 `current-release`。切换后检查失败会尝试恢复上一版。服务器会保留各版本，完整发布约占 530 MiB，增量版本可共享未变动文件的磁盘空间。可通过 `pm2 status` 和 `pm2 logs english-starry-sky` 查看状态。如需开机自动恢复，首次以部署用户运行 `pm2 startup` 并按提示完成系统配置。
 
+### 启用局域网账号和学习同步
+
+首次启用时，将 `scripts/lan_sync.py` 和 `scripts/setup-lan-sync.py` 放到 Linux 发布服务器上同一个临时目录。从该目录运行以下命令。数据库地址默认为 `192.168.1.74:3306`，应用使用独立的 `english_starry_sky` 数据库。
+
+```bash
+root=/home/kjg/work/english-starry-sky
+umask 077
+mkdir -p "$root"
+uv venv "$root/.sync-venv"
+uv pip install --python "$root/.sync-venv/bin/python" 'PyMySQL[rsa]>=1.1,<2'
+"$root/.sync-venv/bin/python" setup-lan-sync.py --config "$root/mysql-sync.json"
+```
+
+初始化脚本会提示输入 MySQL 管理员密码，创建表和专用应用用户。应用用户仅有本数据库的读写权限，连接配置保存在发布目录下、静态站点之外的 `mysql-sync.json` 中。没有 `uv` 时，可以用 `python3 -m venv` 和虚拟环境内的 `python -m pip` 安装同一依赖。
+
+配置完成后运行 `.\scripts\deploy-lan.ps1 -Incremental`，首次完整发布则运行 `.\scripts\deploy-lan.ps1`。以后发布沿用同一个数据库和配置，发布检查会验证 `/api/health` 能访问 MySQL。通过 HTTPS 反向代理访问时，代理需保留原始 `Host` 并将页面和 API 转发到同一服务。
+
+游客继续在当前浏览器学习。「我的」里的「注册 / 登录」可将当前学习记录随注册保存到服务器。同一账号在其他设备登录、页面重新显示或恢复网络时会同步，前台还会定时检查更新。本机暂时离线时，学习记录保留在浏览器。局域网账号与腾讯云账号使用各自的数据库。
+
+启用同步后，使用 `-DeployOnly` 前先用新版代码运行一次 `-BuildOnly`，生成包含同步服务的发布包。
+
 ## 有什么
 - **今日**：每天的新词和复习（FSRS 算法安排），学习路线按课本 10 个单元排列。
 - **图鉴 / 星图**：285 个课本词条（不含人名），按单元和类型（课标重点词、一般词汇、短语、地名与专名）浏览；星图里每学会一个词点亮一颗星。

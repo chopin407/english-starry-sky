@@ -373,5 +373,18 @@ export function resetProgress() {
   flush();
 }
 
+export function applySyncedProgress(progress: unknown, settings: unknown) {
+  const id = state.progress.datasetId;
+  if (!isObj(progress) || progress.datasetId !== id) throw new Error("存档词库不匹配");
+  state = {
+    ...state,
+    progress: sanitizeProgress({ ...progress, session: state.progress.session }, id),
+    settings: sanitizeSettings(settings),
+  };
+  emit();
+  markDirty();
+  flush();
+}
+
 // 开发版：方便在浏览器控制台里模拟学习进度做测试，打包给学生的版本里没有
 if (import.meta.env?.DEV && typeof window !== "undefined") (window as unknown as { __store: typeof store }).__store = store;

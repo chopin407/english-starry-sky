@@ -16,6 +16,8 @@ const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
 const INTERVALS = [20 * MINUTE, 60 * MINUTE, 9 * 60 * MINUTE, DAY, 2 * DAY, 6 * DAY, 31 * DAY];
 
+export const practiceReviewedAt = (review: PracticeReview) => review.due - INTERVALS[review.stage];
+
 export const practiceKey = ({ id, mode, book }: PracticePrompt) => JSON.stringify([book, id, mode]);
 
 export function updatePracticeReview(reviews: Record<string, PracticeReview>, prompt: PracticePrompt, correct: boolean, now: number) {

@@ -24,6 +24,7 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET" || req.headers.has("range")) return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+  if (url.pathname.endsWith("/lan-sync.json") || url.pathname.endsWith("/api/health")) return;
   // 版本号文件每次都要问服务器，不能用缓存（见 src/lib/update.ts）
   if (url.pathname.endsWith("/version.json")) return;
   const isShell = req.mode === "navigate" || url.pathname.endsWith("/index.json");
