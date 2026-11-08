@@ -9,27 +9,72 @@ export const clean = (text: string) =>
 export const same = (a: string, b: string) =>
   clean(a).toLowerCase() === clean(b).toLowerCase();
 
-export function matchesDictation(value: string, target: string, sentence: boolean) {
-  const normalize = (text: string) => clean(text).trim().replace(/ +/g, " ");
-  const submitted = normalize(value);
-  const expected = normalize(target);
-  if (!submitted || sentence) return !!submitted && submitted === expected;
+const normalizeDictation = (text: string) => clean(text).trim().replace(/ +/g, " ");
 
-  const wordForm = (text: string) => normalize(text).toLowerCase().replace(/ +([!?.,])/g, "$1");
-  const input = wordForm(submitted);
+export function dictationWordForms(target: string) {
+  const expected = normalizeDictation(target);
   // Headwords can contain textbook annotations, e.g. "grey (AmE gray)" or "depend on / upon".
-  const american = expected.match(/\(AmE ([^)]+)\)$/)?.[1];
-  const forms = [expected, expected.replace(/ *\([^()]*\)/g, ""), expected.replace(/[()]/g, "")];
+  const american = expected.match(/\(AmE ([^)]+)\)$/)?.[1].trim();
+  if (expected === "a lot of / lots of") return ["a lot of", "lots of", expected];
+  const forms = [expected.replace(/ *\([^()]*\)/g, ""), expected.replace(/[()]/g, ""), expected];
   if (american) forms.push(american);
-  if (expected === "a lot of / lots of") return [expected, "a lot of", "lots of"].includes(input);
-
-  return forms.some((form) => {
-    if (wordForm(form) === input) return true;
+  return [...new Set(forms.flatMap((form) => {
     const choices = form.match(/^(.*?)([^ /]+) *\/ *([^ /]+)(.*)$/);
-    if (!choices) return false;
+    if (!choices) return [form];
     const [, prefix, left, right, suffix] = choices;
-    return [left, right].some((choice) => wordForm(prefix + choice + suffix) === input);
-  });
+    return [prefix + left + suffix, prefix + right + suffix, form];
+  }).map(normalizeDictation))];
+}
+
+type FormatKind = "cap" | "punct";
+type DictationPart = { text: string; kind?: FormatKind };
+type DictationFormat = { submitted: DictationPart[]; reference: DictationPart[]; kinds: FormatKind[] };
+export type DictationGrade = { correct: boolean; format?: DictationFormat };
+
+function compareDictation(submitted: string, expected: string): DictationFormat | null {
+  // Align content characters independently of adjacent punctuation.
+  const pattern = /([^\p{P} ])/u;
+  const actual = submitted.split(pattern);
+  const reference = expected.split(pattern);
+  if (actual.length !== reference.length) return null;
+
+  const format: DictationFormat = { submitted: [], reference: [], kinds: [] };
+  const kinds = new Set<FormatKind>();
+  for (let i = 0; i < actual.length; i += 2) {
+    const actualGap = actual[i];
+    const referenceGap = reference[i];
+    const actualChar = actual[i + 1] ?? "";
+    const referenceChar = reference[i + 1] ?? "";
+    if (actualChar.toLowerCase() !== referenceChar.toLowerCase()) return null;
+    const actualPunct = /\p{P}/u.test(actualGap);
+    const referencePunct = /\p{P}/u.test(referenceGap);
+    // Preserve plain word boundaries, e.g. "alot" is still different from "a lot".
+    if (!actualPunct && !referencePunct && actualGap !== referenceGap) return null;
+    const punct = actualGap !== referenceGap;
+    const cap = actualChar !== referenceChar;
+    if (cap) kinds.add("cap");
+    if (punct) kinds.add("punct");
+    if (actualGap) format.submitted.push({ text: actualGap, kind: punct && actualPunct ? "punct" : undefined });
+    if (referenceGap) format.reference.push({ text: referenceGap, kind: punct && referencePunct ? "punct" : undefined });
+    if (actualChar) format.submitted.push({ text: actualChar, kind: cap ? "cap" : undefined });
+    if (referenceChar) format.reference.push({ text: referenceChar, kind: cap ? "cap" : undefined });
+  }
+  format.kinds = [...kinds];
+  return format;
+}
+
+export function gradeDictation(value: string, target: string, sentence: boolean): DictationGrade {
+  const submitted = normalizeDictation(value);
+  if (!submitted || !/[^\p{P} ]/u.test(submitted)) return { correct: false };
+  const forms = sentence ? [normalizeDictation(target)] : dictationWordForms(target);
+  if (forms.includes(submitted)) return { correct: true };
+  let best: DictationFormat | undefined;
+  for (const expected of forms) {
+    const format = compareDictation(submitted, expected);
+    if (!format) continue;
+    if (!best || format.kinds.length < best.kinds.length) best = format;
+  }
+  return best ? { correct: true, format: best } : { correct: false };
 }
 
 /** Use normalized Unicode code points consistently for scoring and highlighting. */

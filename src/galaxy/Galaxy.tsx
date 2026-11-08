@@ -28,6 +28,10 @@ export function useGalaxyLayout() {
 
 const reduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+type Point = { x: number; y: number };
+const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
+const dragThreshold = (pointerType: string) => pointerType === "mouse" ? 8 : 12;
+
 /** Brightness of every star from the learner's memory state. */
 function starStates(layout: GalaxyLayout, cards: Record<string, { st: number; s: number } | undefined>, highlight?: Set<string>) {
   const out = new Float32Array(layout.n);
@@ -206,11 +210,15 @@ export function Galaxy({
   }, [mode]);
 
   /* ---------- interaction (full mode) ---------- */
-  const drag = useRef<{ x: number; y: number; moved: number; pinch?: number } | null>(null);
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const drag = useRef<{ start: Point; moved: boolean; pinch?: number } | null>(null);
+  const pointers = useRef(new Map<number, Point>());
   const lastTwinkle = useRef(0);
   const dwell = useRef(0);
-  useEffect(() => () => window.clearTimeout(dwell.current), []);
+  const openTimer = useRef(0);
+  useEffect(() => () => {
+    window.clearTimeout(dwell.current);
+    window.clearTimeout(openTimer.current);
+  }, [layout, mode]);
 
   const local = (e: { clientX: number; clientY: number }) => {
     const r = canvas.current!.getBoundingClientRect();
@@ -222,20 +230,21 @@ export function Galaxy({
     if (!eng) return;
     const p = local(e);
     const ps = pointers.current;
-    if (ps.has(e.pointerId)) {
-      const prev = ps.get(e.pointerId)!;
+    const prev = ps.get(e.pointerId);
+    const gesture = drag.current;
+    if (prev && gesture) {
       ps.set(e.pointerId, p);
       if (ps.size === 2) {
         const [a, b] = [...ps.values()];
-        const dist = Math.hypot(a.x - b.x, a.y - b.y);
-        if (drag.current?.pinch) eng.cam.dist = clampDist(eng.cam.dist * (drag.current.pinch / dist));
-        if (drag.current) drag.current.pinch = dist;
-        return;
-      }
-      if (drag.current) {
-        const dx = p.x - prev.x;
-        const dy = p.y - prev.y;
-        drag.current.moved += Math.abs(dx) + Math.abs(dy);
+        const dist = distance(a, b);
+        if (gesture.pinch && dist > 0) eng.cam.dist = clampDist(eng.cam.dist * (gesture.pinch / dist));
+        gesture.pinch = dist;
+      } else if (ps.size === 1) {
+        const from = gesture.moved ? prev : gesture.start;
+        if (!gesture.moved && distance(p, from) <= dragThreshold(e.pointerType)) return;
+        gesture.moved = true;
+        const dx = p.x - from.x;
+        const dy = p.y - from.y;
         eng.cam.yaw -= dx * 0.006;
         eng.cam.pitch = Math.max(0.12, Math.min(1.45, eng.cam.pitch + dy * 0.005));
       }
@@ -263,33 +272,45 @@ export function Galaxy({
     }, 120);
   };
 
-  const onDown = (e: React.PointerEvent) => {
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    pointers.current.set(e.pointerId, local(e));
-    drag.current = { ...local(e), moved: 0 };
+  const onDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    window.clearTimeout(dwell.current);
+    window.clearTimeout(openTimer.current);
+    const p = local(e);
+    pointers.current.set(e.pointerId, p);
+    if (drag.current) {
+      // A gesture with multiple pointers can never select a star on release.
+      drag.current.moved = true;
+      drag.current.pinch = undefined;
+    } else {
+      drag.current = { start: p, moved: false };
+    }
+  };
+
+  const endPointer = (e: React.PointerEvent) => {
+    if (!pointers.current.delete(e.pointerId)) return null;
+    const gesture = drag.current;
+    if (pointers.current.size) {
+      if (gesture) gesture.pinch = undefined;
+      return null;
+    }
+    drag.current = null;
+    return gesture;
   };
 
   const onUp = (e: React.PointerEvent) => {
+    const gesture = endPointer(e);
     const eng = engine.current;
-    const d = drag.current;
-    pointers.current.delete(e.pointerId);
-    if (pointers.current.size) return;
-    drag.current = null;
-    if (!eng || !d || d.moved > 8) return;
+    if (!eng || !gesture || gesture.moved) return;
     const p = local(e);
+    if (distance(p, gesture.start) > dragThreshold(e.pointerType)) return;
     const i = eng.pick(p.x, p.y, e.pointerType === "mouse" ? 16 : 26);
     if (i < 0) return;
     const ref = atlas.words[i];
-    if (e.pointerType !== "mouse" && hover?.ref.id !== ref.id) {
-      // First tap previews, second tap opens.
-      eng.hover = i;
-      setHover({ ref, x: p.x, y: p.y });
-      if (store.get().settings.sfx) void cue("twinkle");
-      return;
-    }
     eng.flyTo(i);
     if (store.get().settings.sfx) void cue("fly");
-    window.setTimeout(() => openWord(ref.id), 350);
+    openTimer.current = window.setTimeout(() => openWord(ref.id), 350);
   };
 
   const onWheel = (e: React.WheelEvent) => {
@@ -325,14 +346,15 @@ export function Galaxy({
         onPointerMove={onMove}
         onPointerDown={onDown}
         onPointerUp={onUp}
-        onPointerCancel={onUp}
+        onPointerCancel={endPointer}
+        onLostPointerCapture={endPointer}
         onPointerLeave={() => {
           if (engine.current) engine.current.hover = -1;
           setHover(null);
         }}
         onWheel={onWheel}
         role="img"
-        aria-label={`词汇星图：${layout.n} 颗星，已点亮 ${lit} 颗。可拖动旋转、滚动缩放，点击星星打开词条。`}
+        aria-label={`词汇星图：${layout.n} 颗星，已点亮 ${lit} 颗。可拖动旋转，用滚轮或双指缩放，点按星星打开词条。`}
         tabIndex={0}
         onKeyDown={(e) => {
           const eng = engine.current;
@@ -436,7 +458,7 @@ export function Galaxy({
           <Share2 size={17} />
         </button>
       </div>
-      <p className="galaxy-hint">拖动旋转 · 滚动缩放 · 点击星星打开词条</p>
+      <p className="galaxy-hint">拖动旋转 · 滚轮或双指缩放 · 点按星星打开词条</p>
     </div>
   );
 }

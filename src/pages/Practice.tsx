@@ -5,12 +5,13 @@ import { MEDIA, type Entry } from "../atlas/types";
 import { play, stopAudio } from "../lib/audio";
 import { cue } from "../lib/sound";
 import { hashSeed, shuffle } from "../lib/text";
-import { matchesDictation } from "../lib/typing";
+import { dictationWordForms, gradeDictation, type DictationGrade } from "../lib/typing";
 import { practiceKey, updatePracticeReview, type PracticeMode, type PracticePrompt } from "../store/practiceReview";
 import { formatInterval } from "../store/srs";
 import { store, useStore } from "../store/store";
 import { AmbiencePicker } from "../ui/Ambience";
 import { Illustration } from "../ui/Illustration";
+import { SpellInput } from "../ui/SpellInput";
 import { Quiz, WrongPanel, type Item } from "./Points";
 import { ChallengeSwitch } from "./Challenge";
 
@@ -337,9 +338,9 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
   const [i, setI] = useState(0);
   const [value, setValue] = useState("");
   const [nextInterval, setNextInterval] = useState("");
-  const [results, setResults] = useState<boolean[]>([]);
+  const [results, setResults] = useState<DictationGrade[]>([]);
   const question = questions[i];
-  const correct = results[i];
+  const grade = results[i];
   const mode = question?.prompt.mode ?? questions[0].prompt.mode;
   const say = (rate = 1) => {
     if (!question) return;
@@ -353,12 +354,14 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
   }, [i]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => stopAudio(), []);
 
-  const judge = () => {
-    if (!question || correct !== undefined || !value.trim()) return;
+  const judge = (submitted: string) => {
+    if (!question || grade) return;
     const { prompt } = question;
-    const ok = matchesDictation(value, answer(question), mode !== "word");
+    const result = gradeDictation(submitted, answer(question), mode !== "word");
+    const ok = result.correct;
     if (settings.sfx) void cue(ok ? "correct" : "wrong");
-    const next = [...results, ok];
+    const next = [...results, result];
+    setValue(submitted);
     setResults(next);
     const now = Date.now();
     const practiceReviews = store.get().progress.practiceReviews;
@@ -369,7 +372,7 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
       practiceReviews: updated,
       mistakes: ok ? p.mistakes : [prompt.id, ...p.mistakes.filter((id) => id !== prompt.id)].slice(0, 300),
       typing: roundFinished
-        ? [...p.typing, { at: now, mode, items: questions.length, wpm: 0, accuracy: Math.round(next.filter(Boolean).length / questions.length * 100) }].slice(-500)
+        ? [...p.typing, { at: now, mode, items: questions.length, wpm: 0, accuracy: Math.round(next.filter((r) => r.correct).length / questions.length * 100) }].slice(-500)
         : p.typing,
     }));
     const due = updated[practiceKey(prompt)]?.due;
@@ -384,8 +387,8 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
   };
 
   if (!question) {
-    const right = results.filter(Boolean).length;
-    const wrong = questions.filter((_, k) => !results[k]);
+    const right = results.filter((r) => r.correct).length;
+    const wrong = questions.filter((_, k) => !results[k].correct);
     return (
       <div className="page practice">
         <section className="panel typing-done">
@@ -425,20 +428,11 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
   }
 
   const { atlas, entry: e } = question;
-  const parts = correct === undefined ? [] : markTricky(answer(question), e.w);
+  const expected = answer(question);
+  const format = grade?.format;
+  const parts = format?.reference ?? (grade ? markTricky(expected, e.w) : []);
   const tip =
     mode === "word" ? "听发音，根据提示输入英文单词。" : mode === "dictation" ? "听录音，输入完整的英文句子。注意大小写和标点。" : "根据中文提示输入英文例句。按词库例句判分，注意大小写和标点。";
-  const inputProps = {
-    id: "dictation-answer",
-    lang: "en",
-    value,
-    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValue(event.target.value),
-    autoCapitalize: "off",
-    autoCorrect: "off",
-    autoComplete: "off",
-    spellCheck: false,
-    autoFocus: true,
-  };
   return (
     <div className="page practice typing paper">
       <header className="typing-top">
@@ -475,46 +469,35 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
           )}
         </div>
 
-        {correct === undefined ? (
-          <form
-            key={i}
-            className="paper-form"
-            onSubmit={(event) => { event.preventDefault(); judge(); }}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" || event.target instanceof HTMLButtonElement || event.nativeEvent.isComposing || event.shiftKey) return;
-              event.preventDefault();
-              if (!event.repeat) judge();
-            }}
-          >
-            <label htmlFor="dictation-answer">你的答案</label>
-            {mode === "word" ? <input {...inputProps} placeholder="输入英文单词" /> : <textarea {...inputProps} rows={2} placeholder="输入完整的英文句子" />}
-            <button className="btn btn-primary" type="submit" disabled={!value.trim()}><Check size={18} /> 提交答案</button>
-          </form>
+        {!grade ? (
+          <SpellInput key={i} target={mode === "word" ? dictationWordForms(expected)[0] : expected.trim()} onSubmit={judge} />
         ) : (
           <div className="paper-answer">
-            <div role="status" className={`paper-verdict ${correct ? "is-correct" : "is-wrong"}`}>
-              {correct ? <Check size={20} aria-hidden="true" /> : <X size={20} aria-hidden="true" />}
-              <b>{correct ? "回答正确" : "答错了 · 已加入错词本"}</b>
+            <div role="status" className={`paper-verdict ${grade.correct ? "is-correct" : "is-wrong"}`}>
+              {grade.correct ? <Check size={20} aria-hidden="true" /> : <X size={20} aria-hidden="true" />}
+              <b>{grade.correct ? "回答正确" : "答错了 · 已加入错词本"}</b>
+              {format && <span className="paper-format-note">注意{format.kinds.map((kind) => kind === "cap" ? "大小写" : "标点").join("和")}</span>}
             </div>
-            {!correct && <p className="paper-submitted">你的答案 <span lang="en">{value}</span></p>}
-            {!correct && <p className="eyebrow">参考答案</p>}
+            {(!grade.correct || format) && (
+              <p className="paper-submitted">
+                你的答案 <span lang="en">{format ? format.submitted.map((p, k) => p.kind ? <mark key={k} className={`pm-${p.kind}`}>{p.text}</mark> : p.text) : value}</span>
+              </p>
+            )}
+            {(!grade.correct || format) && <p className="eyebrow">参考答案</p>}
             <p className={`paper-sentence ${mode === "word" ? "is-word" : ""}`} lang="en">
               {parts.map((p, k) => (p.kind ? <mark key={k} className={`pm-${p.kind}`}>{p.text}</mark> : <span key={k}>{p.text}</span>))}
             </p>
-            {mode === "word" ? (
-              <p className="muted">{e.uk}</p>
-            ) : (
-              <>
-                {mode === "dictation" && <p className="paper-zh-small">{e.ex[0].zh}</p>}
-                <p className="paper-legend">
-                  <mark className="pm-word">本课单词 {e.w}</mark>
-                  <mark className="pm-cap">大写</mark>
-                  <mark className="pm-punct">标点</mark>
-                </p>
-              </>
+            {mode === "word" && <p className="muted">{e.uk}</p>}
+            {mode === "dictation" && <p className="paper-zh-small">{e.ex[0].zh}</p>}
+            {(mode !== "word" || format) && (
+              <p className="paper-legend">
+                {!format && <mark className="pm-word">本课单词 {e.w}</mark>}
+                {(!format || format.kinds.includes("cap")) && <mark className="pm-cap">大小写</mark>}
+                {(!format || format.kinds.includes("punct")) && <mark className="pm-punct">标点</mark>}
+              </p>
             )}
             {nextInterval && <p className="muted">{nextInterval}后可以复习这道题。</p>}
-            {review && correct && !nextInterval && <p className="muted">这道题已完成全部间隔复习。</p>}
+            {review && grade.correct && !nextInterval && <p className="muted">这道题已完成全部间隔复习。</p>}
             <button className="btn btn-primary paper-next" onClick={advance} autoFocus>
               {i + 1 === questions.length ? "查看结果" : "下一题"} <ArrowRight size={18} />
             </button>

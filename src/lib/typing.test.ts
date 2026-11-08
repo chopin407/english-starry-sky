@@ -1,24 +1,47 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { clean, matchesDictation, same, typingDelta, typingMetrics } from "./typing";
+import { clean, dictationWordForms, gradeDictation, same, typingDelta, typingMetrics } from "./typing";
 
-test("dictation normalizes keyboard typography and enforces sentence case and punctuation", () => {
-  assert.ok(matchesDictation("  ＥＶＥＲＹＯＮＥ  ", "everyone", false));
-  assert.ok(matchesDictation("  It’s   fine！  ", "It's fine!", true));
-  assert.ok(!matchesDictation("Everyonee", "everyone", false));
-  assert.ok(!matchesDictation("it's fine!", "It's fine!", true));
-  assert.ok(!matchesDictation("It's fine", "It's fine!", true));
-  assert.ok(!matchesDictation("   ", "", false));
+test("dictation normalizes keyboard typography and marks case and punctuation without lowering the score", () => {
+  assert.deepEqual(gradeDictation("  It’s   fine！  ", "It's fine!", true), { correct: true });
+  const word = gradeDictation("  ＥＶＥＲＹＯＮＥ  ", "everyone", false);
+  assert.ok(word.correct);
+  assert.deepEqual(word.format?.kinds, ["cap"]);
+  const sentence = gradeDictation("its fine?", "It's fine!", true);
+  assert.ok(sentence.correct);
+  assert.deepEqual(sentence.format?.submitted.filter((p) => p.kind), [
+    { kind: "cap", text: "i" },
+    { kind: "punct", text: "?" },
+  ]);
+  assert.deepEqual(sentence.format?.reference.filter((p) => p.kind), [
+    { kind: "cap", text: "I" },
+    { kind: "punct", text: "'" },
+    { kind: "punct", text: "!" },
+  ]);
+  assert.deepEqual(gradeDictation("It's fine", "It's fine!", true).format?.kinds, ["punct"]);
+  assert.deepEqual(gradeDictation("hello,world", "hello world", true).format?.kinds, ["punct"]);
+});
+
+test("dictation still rejects missing or misspelled words, missing word boundaries and empty answers", () => {
+  assert.ok(!gradeDictation("Everyonee", "everyone", false).correct);
+  assert.ok(!gradeDictation("its fne", "It's fine!", true).correct);
+  assert.ok(!gradeDictation("fine!", "It's fine!", true).correct);
+  assert.ok(!gradeDictation("alot", "a lot", true).correct);
+  assert.ok(!gradeDictation("   ", "", false).correct);
+  assert.ok(!gradeDictation("!?", "Hello!", true).correct);
 });
 
 test("word dictation accepts variants and optional words marked in textbook headwords", () => {
-  assert.ok(matchesDictation("gray", "grey (AmE gray )", false));
-  assert.ok(matchesDictation("at the back", "at the back (of)", false));
-  assert.ok(matchesDictation("at the back of", "at the back (of)", false));
-  assert.ok(matchesDictation("depend upon", "depend on / upon", false));
-  assert.ok(matchesDictation("cut sth into sth", "cut sth in / into sth", false));
-  assert.ok(matchesDictation("lots of", "a lot of / lots of", false));
-  assert.ok(!matchesDictation("upon", "depend on / upon", false));
+  assert.equal(dictationWordForms("grey (AmE gray )")[0], "grey");
+  assert.equal(dictationWordForms("depend on / upon")[0], "depend on");
+  assert.deepEqual(gradeDictation("gray", "grey (AmE gray )", false), { correct: true });
+  assert.deepEqual(gradeDictation("at the back", "at the back (of)", false), { correct: true });
+  assert.deepEqual(gradeDictation("at the back of", "at the back (of)", false), { correct: true });
+  assert.deepEqual(gradeDictation("depend upon", "depend on / upon", false), { correct: true });
+  assert.deepEqual(gradeDictation("cut sth into sth", "cut sth in / into sth", false), { correct: true });
+  assert.deepEqual(gradeDictation("lots of", "a lot of / lots of", false), { correct: true });
+  assert.deepEqual(gradeDictation("at the BACK (of)", "at the back (of)", false).format?.kinds, ["cap"]);
+  assert.ok(!gradeDictation("upon", "depend on / upon", false).correct);
 });
 
 test("typing counts inserted characters and does not reward deletions", () => {
