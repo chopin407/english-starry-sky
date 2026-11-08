@@ -7,7 +7,7 @@ import { burst } from "../lib/burst";
 import { cue } from "../lib/sound";
 import { go } from "../lib/router";
 import { gap, normalize } from "../lib/text";
-import { answer, advance, buildSession, gradeFor, sessionStats } from "../store/session";
+import { answer, advance, buildSession, gradeFor, sessionFor, sessionStats, withSession } from "../store/session";
 import { Rating } from "../store/srs";
 import { store, useStore, type ActiveSession, type QuizKind, type Step } from "../store/store";
 import { EntryView, Highlight } from "../ui/EntryView";
@@ -21,18 +21,18 @@ import { shareSession } from "../ui/shareSession";
 
 export function Learn() {
   const atlas = useAtlas();
-  const session = useStore((s) => s.progress.session);
+  const session = useStore((s) => sessionFor(atlas, s.progress));
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const { progress, settings } = store.get();
-    if (!progress.session) {
+    if (!sessionFor(atlas, progress)) {
       const s = buildSession(atlas, progress, settings);
       if (!s.steps.length) {
         go({ page: "today" }, null, true);
         return;
       }
-      store.progress((p) => ({ ...p, session: s }));
+      store.progress((p) => withSession(atlas, p, s));
     }
   }, [atlas]);
 
@@ -109,8 +109,8 @@ function Intro({ step }: { step: Step }) {
   const next = useCallback(() => {
     stopAudio();
     if (store.get().settings.sfx) void cue("flip");
-    advance(elapsed());
-  }, [elapsed]);
+    advance(atlas, elapsed());
+  }, [atlas, elapsed]);
   useKeys({ Enter: next, " ": next });
   if (!entry) return <span className="spinner" />;
   return (
@@ -167,8 +167,8 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
 
   const next = useCallback(() => {
     stopAudio();
-    advance(elapsed());
-  }, [elapsed]);
+    advance(atlas, elapsed());
+  }, [atlas, elapsed]);
 
   // 出题时读单词：听音题一定读；「什么意思」「拼写」题在开了自动发音时也读；看图补句不读（一读就把答案说出来了）
   useEffect(() => {
@@ -352,12 +352,12 @@ function Summary({ session }: { session: ActiveSession }) {
   const wrong = words.filter((w) => session.graded[w.id] === Rating.Again);
   const minutes = Math.max(1, Math.round(((session.finished ?? Date.now()) - session.started) / 60000));
   const done = () => {
-    store.progress((p) => ({ ...p, session: null }));
+    store.progress((p) => withSession(atlas, p, null));
     go({ page: "today" });
   };
   const again = () => {
     const { progress, settings } = store.get();
-    store.progress((p) => ({ ...p, session: buildSession(atlas, progress, settings, { ids: wrong.map((w) => w.id) }) }));
+    store.progress((p) => withSession(atlas, p, buildSession(atlas, progress, settings, { ids: wrong.map((w) => w.id) })));
   };
   return (
     <div className="learn summary">

@@ -4,7 +4,7 @@ import { go } from "../lib/router";
 import { cue } from "../lib/sound";
 import { unitId, unitKey } from "../lib/unit";
 import { isPassed, unitPassNeed } from "../store/game";
-import { buildSession } from "../store/session";
+import { buildSession, withSession } from "../store/session";
 import { isMastered } from "../store/srs";
 import { store, useStore } from "../store/store";
 import { Sheet } from "./Sheet";
@@ -38,7 +38,7 @@ function UnitPanel({ index, onDone }: { index: number; onDone: () => void }) {
   const startWith = (ids: string[]) => {
     const s = buildSession(atlas, progress, settings, { ids });
     if (!s.steps.length) return;
-    store.progress((p) => ({ ...p, session: s }));
+    store.progress((p) => withSession(atlas, p, s));
     if (settings.sfx) void cue("start");
     onDone();
     go({ page: "learn" });

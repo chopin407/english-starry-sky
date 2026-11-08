@@ -2,7 +2,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAtlas } from "../atlas/context";
-import { BOOKS, ZK_BOOK, bookById } from "../lib/books";
+import { BOOKS, ZK_BOOK, bookById, bookTag } from "../lib/books";
 import { go } from "../lib/router";
 import { cue } from "../lib/sound";
 import { store, useStore } from "../store/store";
@@ -51,12 +51,12 @@ export function BookSwitcher() {
   return (
     <div className="book-switch" ref={box}>
       <button key={pulse} className={`book-switch-btn ${pulse ? "is-pulse" : ""}`} onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open}>
-        人教版{current.name}
+        {bookTag(current.id)}
         <ChevronDown size={14} className="book-switch-chev" />
       </button>
       {open && (
         <div className="book-switch-pop" role="menu">
-          <p className="eyebrow">人教版 · 选择册数</p>
+          <p className="eyebrow">选择教材</p>
           <ul>
             {[...BOOKS, ZK_BOOK].map((b) => (
               <li key={b.id} className={b.id === "zk" ? "is-zk" : ""}>
@@ -70,7 +70,7 @@ export function BookSwitcher() {
                     setOpen(false);
                   }}
                 >
-                  <span>{b.name}</span>
+                  <span>{b.edition ? bookTag(b.id) : b.name}</span>
                   {b.id === current.id ? <Check size={18} /> : !b.ready && <small>准备中</small>}
                 </button>
               </li>
@@ -92,6 +92,7 @@ const coverUrl = (id: string) => `${import.meta.env.BASE_URL}brand/book-${id}.we
  *  封面图加载失败时，退回画出来的彩色封面。 */
 function BookFlip({ id, onDone }: { id: string; onDone: () => void }) {
   const atlas = useAtlas();
+  const book = bookById(id);
   const ready = atlas.book === id;
   const [leaving, setLeaving] = useState(false);
   const [noImg, setNoImg] = useState(false);
@@ -111,16 +112,16 @@ function BookFlip({ id, onDone }: { id: string; onDone: () => void }) {
       <div className={`book-flip-cover ${noImg ? (COVERS[id] ?? "") : "has-img"}`}>
         {noImg ? (
           <>
-            <small>人教版 · 英语</small>
-            <b>{bookById(id).name}</b>
+            <small>{book.edition ?? "人教版"} · 英语</small>
+            <b>{book.name}</b>
           </>
         ) : (
-          <img src={coverUrl(id)} alt={`人教版英语${bookById(id).name}课本封面`} onError={() => setNoImg(true)} />
+          <img src={coverUrl(id)} alt={`${bookTag(id)}英语课本封面`} onError={() => setNoImg(true)} />
         )}
         <span className="book-flip-spine" aria-hidden="true" />
       </div>
       <p className="book-flip-tip">
-        <b>已切换到{bookById(id).name}</b>
+        <b>已切换到{book.edition ? bookTag(id) : book.name}</b>
         <small>{ready ? `${atlas.count} 个单词 · ${atlas.cefr.length} 个单元` : "正在翻开…"}</small>
       </p>
     </div>,

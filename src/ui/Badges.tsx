@@ -1,8 +1,10 @@
 import { Award, BookOpen, BookOpenCheck, CalendarDays, Check, CheckCheck, Crown, Ear, Flag, Flame, Gift, Hourglass, Keyboard, Library, Lightbulb, Lock, Music, Package, Palette, PenLine, Sparkles, Star, Swords, Target, Timer, Trophy, Zap } from "lucide-react";
 import { useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
+import { useAtlas } from "../atlas/context";
 import { burst } from "../lib/burst";
 import { badgeStates, BACKFILL_CAP, claimBackfill, claimBadge, pendingBadges, REWARD, SERIES, type BadgeReward, type BadgeState } from "../store/achievements";
 import { useStore } from "../store/store";
+import { sessionFor } from "../store/session";
 import { EMBLEM_IDS } from "./badgeEmblems";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
@@ -323,9 +325,11 @@ export function BadgeSheet() {
 let seen: { id: string; got: Set<string> } | null = null;
 
 export function useBadgeToasts() {
+  const atlas = useAtlas();
   const progress = useStore((s) => s.progress);
+  const session = sessionFor(atlas, progress);
   useEffect(() => {
-    if (progress.session && !progress.session.finished) return;
+    if (session && !session.finished) return;
     const got = badgeStates(progress).filter((x) => x.got);
     if (!seen || seen.id !== progress.datasetId) {
       seen = { id: progress.datasetId, got: new Set(got.map((x) => x.id)) };
@@ -336,5 +340,5 @@ export function useBadgeToasts() {
     // 一下子多出很多（读进了备份、云端同步），不算新达成，不弹
     if (fresh.length > 3) return;
     for (const x of fresh) toast(`🏅 解锁徽章「${x.name}」！点右上角的奖章图标领取奖励`, "ok");
-  }, [progress]);
+  }, [progress, session]);
 }

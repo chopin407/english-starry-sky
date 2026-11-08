@@ -40,7 +40,7 @@ export interface Point {
 }
 interface PointsData {
   cats: { id: string; name: string }[];
-  units: { unit: string; title?: string; points: Point[] }[];
+  units: { unit: string; title?: string; label?: string; points: Point[] }[];
 }
 
 const usePoints = () => useBookData<PointsData>("points");
@@ -209,7 +209,7 @@ function PointsHome({
         return (
           <section key={u.unit} className="pt-unit" id={`pt-${u.unit}`}>
             <h2 className="pt-unit-title">
-              <span className="station-mini">{u.unit === "revision" ? "复习" : unitShort(unitTitle(u.unit))}</span>
+              <span className="station-mini">{u.label ?? (u.unit === "revision" ? "复习" : unitShort(unitTitle(u.unit)))}</span>
               {title}
             </h2>
             {ls.length > 0 && (
@@ -302,7 +302,7 @@ function PointDetail({ point, onBack, onPractice }: { point: Point; onBack: () =
       <h1 className="display pt-title">{point.title}</h1>
       <section className="panel pt-explain">{point.explain}</section>
       <section className="block">
-        <h3 className="eyebrow">课本例句</h3>
+        <h3 className="eyebrow">例句</h3>
         <ul className="examples">
           {point.examples.map((x, i) => (
             <li key={x.en}>

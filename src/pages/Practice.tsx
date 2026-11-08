@@ -120,7 +120,7 @@ export function Practice() {
   const progress = useStore((s) => s.progress);
   const startLevel = useStore((s) => s.settings.startLevel);
   const [mode, setMode] = useState<PracticeMode>("word");
-  const [source, setSource] = useState<Source>(() => (Object.keys(progress.cards).length ? "recent" : "path"));
+  const [source, setSource] = useState<Source>("path");
   const [ranges, setRanges] = useState<Record<string, [number, number]>>({});
   const book = atlas.book ?? "7a";
   const range = ranges[book] ?? loadRange(book, atlas.cefr.length, startLevel);

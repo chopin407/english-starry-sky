@@ -5,7 +5,7 @@ import { useAtlas } from "../atlas/context";
 import { burst } from "../lib/burst";
 import { cue } from "../lib/sound";
 import { canPatchYesterday, grantEgg, currentChain, isDailyDone, markEarned, openChest, patchYesterday, summarize, readyChests, SKIN_COST, unitLeftToday, isExcellent, EXCELLENT_ACC, EXCELLENT_MIN, challengeEarnedToday, type ChestKind, type ChestTicket, type Prize } from "../store/game";
-import { todayPlan } from "../store/session";
+import { sessionFor, todayPlan } from "../store/session";
 import { dayKey, useStore } from "../store/store";
 import { Sheet } from "./Sheet";
 import { unitLabel, unitShort } from "../lib/unit";
@@ -24,7 +24,7 @@ export function useChests() {
   return useMemo(() => {
     const plan = todayPlan(atlas, progress, settings);
     const left = plan.due.length + plan.fresh.length;
-    const done = isDailyDone(progress, left);
+    const done = isDailyDone(progress, left, sessionFor(atlas, progress));
     return { ready: readyChests(atlas, progress, done), left, done, game: progress.game, progress };
   }, [atlas, progress, settings]);
 }
@@ -188,8 +188,10 @@ const RANK: Record<ChestKind, number> = { weekly: 0, unit: 1, challenge: 2, dail
 /** 刚得到新宝箱（完成当天任务、连续满 7 天、单元过关）就直接弹出来；
  *  打开网页时已经攒着的不弹；正在学习时先不打扰，等这轮学完再弹。 */
 export function ChestAutoPop() {
+  const atlas = useAtlas();
   const { ready } = useChests();
-  const busy = useStore((s) => !!s.progress.session && !s.progress.session.finished);
+  const session = useStore((s) => sessionFor(atlas, s.progress));
+  const busy = !!session && !session.finished;
   const seen = useRef<Set<string> | null>(null);
   const [queue, setQueue] = useState<ChestTicket[]>([]);
   useEffect(() => {

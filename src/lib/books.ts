@@ -4,6 +4,7 @@ import { store } from "../store/store";
 export interface Book {
   id: string;
   name: string;
+  edition?: string;
   /** 简称：搜索结果、标签上用 */
   short: string;
   /** 上册 / 下册 / 全册：按日期给新同学预选时用 */
@@ -12,12 +13,13 @@ export interface Book {
 }
 
 export const BOOKS: Book[] = [
+  { id: "6a", name: "六年级上册", short: "六上", term: "a", ready: true },
   { id: "7a", name: "七年级上册", short: "七上", term: "a", ready: true },
   { id: "7b", name: "七年级下册", short: "七下", term: "b", ready: true },
   { id: "8a", name: "八年级上册", short: "八上", term: "a", ready: true },
   { id: "8b", name: "八年级下册", short: "八下", term: "b", ready: true },
   { id: "9", name: "九年级", short: "九年级", term: "all", ready: true },
-  { id: "6a", name: "六年级上册", short: "六上", term: "a", ready: true },
+  { id: "fltrp9a", name: "九年级", edition: "外研版", short: "外研九", term: "a", ready: true },
 ];
 
 /** 中考总复习：三年内容按中考考法重新组织，只放在左上角菜单里，不进新手引导（以后单独设计） */
@@ -34,4 +36,7 @@ export function suggestBook(now = new Date()): string {
 }
 
 /** 「人教版八年级上册」：分享图片、页脚上显示当前选的册 */
-export const bookTag = (id = store.get().settings.book) => `人教版${bookById(id).name}`;
+export const bookTag = (id = store.get().settings.book) => {
+  const book = bookById(id);
+  return `${book.edition ?? "人教版"}${book.name}`;
+};

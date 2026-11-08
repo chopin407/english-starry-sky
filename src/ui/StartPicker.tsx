@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAtlas } from "../atlas/context";
-import { bookById } from "../lib/books";
+import { bookById, bookTag } from "../lib/books";
 import { unitShort } from "../lib/unit";
 import { store, useStore } from "../store/store";
 import { Sheet } from "./Sheet";
@@ -39,6 +39,7 @@ export function StartChoice({ value, onChange }: { value: number; onChange: (i: 
 /** 切换到一本还没学过的册数时弹出：只问从哪里开始，不再走一遍新手引导 */
 export function StartSheet() {
   const settings = useStore((s) => s.settings);
+  const book = bookById(settings.book);
   const open = settings.onboarded && !(settings.book in settings.starts);
   const [level, setLevel] = useState(0);
   const save = (i: number) => store.settings({ startLevel: i, starts: { ...settings.starts, [settings.book]: i } });
@@ -48,7 +49,7 @@ export function StartSheet() {
       {open && (
         <div className="start-sheet">
           <p className="eyebrow">第一次学这一册</p>
-          <h2 className="display">{bookById(settings.book).name}，从哪里开始？</h2>
+          <h2 className="display">{book.edition ? bookTag(book.id) : book.name}，从哪里开始？</h2>
           <StartChoice value={level} onChange={setLevel} />
           <button className="btn btn-primary btn-xl" onClick={() => save(level)}>
             开始学 <ArrowRight size={20} />

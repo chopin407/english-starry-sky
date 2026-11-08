@@ -6,7 +6,7 @@ import type { Atlas } from "../atlas/types";
 import { FACTS } from "../lib/facts";
 import { unitKey } from "../lib/unit";
 import { areCouponsOff, COUPON_CHOICES, FX, isExpired, MAX_PATCHES, MUSIC, SKIN_COST, type CouponKind, type GameState } from "./gameState";
-import { dayKey, store, type Progress } from "./store";
+import { dayKey, store, type ActiveSession, type Progress } from "./store";
 
 export * from "./gameState";
 
@@ -196,8 +196,8 @@ export function isExcellent(p: Progress, day = dayKey()) {
 }
 
 /** 今天的任务算完成：今天答过题，而且今日旅程（复习 + 新词）都做完了。 */
-export function isDailyDone(p: Progress, planLeft: number) {
-  const active = p.session && !p.session.finished;
+export function isDailyDone(p: Progress, planLeft: number, session: ActiveSession | null = p.session) {
+  const active = session && !session.finished;
   return (p.days[dayKey()]?.r ?? 0) > 0 && planLeft === 0 && !active;
 }
 

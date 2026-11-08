@@ -37,6 +37,38 @@ export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {
   return { due, fresh, minutes: Math.max(1, Math.round(due.length * 0.25 + fresh.length * 0.9)) };
 }
 
+const sessionKey = (atlas: Atlas) => atlas.book ?? atlas.id;
+
+function legacySessionKey(atlas: Atlas, session: ActiveSession) {
+  const ids = session.newIds.length ? session.newIds : session.reviewIds;
+  const ownsWords = (book: Atlas) => ids.every((id) => {
+    const ref = book.byId.get(id);
+    return ref && book.words[ref.order]?.id === id;
+  });
+  const owner = ownsWords(atlas) ? atlas : atlas.shelf?.find(ownsWords);
+  return owner ? sessionKey(owner) : !session.newIds.length && ids.every((id) => atlas.byId.has(id)) ? sessionKey(atlas) : undefined;
+}
+
+export function sessionFor(atlas: Atlas, progress: Progress): ActiveSession | null {
+  const key = sessionKey(atlas);
+  if (progress.sessions && Object.hasOwn(progress.sessions, key)) return progress.sessions[key];
+  const old = progress.session;
+  return old && legacySessionKey(atlas, old) === key ? old : null;
+}
+
+export function withSession(atlas: Atlas, progress: Progress, session: ActiveSession | null): Progress {
+  const key = sessionKey(atlas);
+  const old = progress.session;
+  const oldKey = old && legacySessionKey(atlas, old);
+  const sessions = {
+    ...(old && oldKey ? { [oldKey]: old } : {}),
+    ...progress.sessions,
+    ...(session ? { [key]: session } : {}),
+  };
+  if (!session) delete sessions[key];
+  return { ...progress, session: oldKey ? null : old, sessions };
+}
+
 function quizKind(ref: WordRef, p: Progress, s: Settings, salt: number): QuizKind {
   const c = p.cards[ref.id];
   const hasImg = !!(ref.media & MEDIA.img);
@@ -119,44 +151,45 @@ export function gradeFor(kind: QuizKind, correct: boolean, ms: number, hinted: b
 export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: boolean, grade: Grade, value: string) {
   const { settings } = store.get();
   store.progress((p) => {
-    const sess = p.session;
+    const sess = sessionFor(atlas, p);
     if (!sess) return p;
-    let next: Progress = { ...p, session: { ...sess, pending: { correct, value } } };
+    let next = p;
+    let updated = { ...sess, pending: { correct, value } };
     const first = !(step.id in sess.graded) && !step.retry;
     if (first) {
       next = {
         ...next,
         cards: { ...next.cards, [step.id]: review(p.cards[step.id], grade, Date.now(), settings.retention) },
-        session: { ...next.session!, graded: { ...sess.graded, [step.id]: grade } },
         mistakes: correct ? next.mistakes : [step.id, ...next.mistakes.filter((x) => x !== step.id)].slice(0, 300),
       };
+      updated = { ...updated, graded: { ...sess.graded, [step.id]: grade } };
       next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0 });
     }
     if (!correct) {
       // Practise it again a few steps later in another format; never re-graded.
-      const steps = [...next.session!.steps];
+      const steps = [...updated.steps];
       const retries = steps.filter((x) => x.id === step.id && "retry" in x && x.retry).length;
       if (retries < 2) {
         const ref = atlas.byId.get(step.id)!;
         const kind: QuizKind = step.kind === "meaning" ? (ref.media & MEDIA.img ? "picture" : "listen") : "meaning";
         const at = Math.min(steps.length, sess.index + 4);
         steps.splice(at, 0, { id: step.id, kind, retry: true, options: distractors(atlas, ref, kind, Date.now()) });
-        next = { ...next, session: { ...next.session!, steps } };
+        updated = { ...updated, steps };
       }
     }
-    return next;
+    return withSession(atlas, next, updated);
   });
 }
 
 /** Move to the next step; `seconds` is time spent on this step, capped so idle tabs don't inflate stats. */
-export function advance(seconds: number) {
+export function advance(atlas: Atlas, seconds: number) {
   store.progress((p) => {
-    const s = p.session;
+    const s = sessionFor(atlas, p);
     if (!s) return p;
     const index = s.index + 1;
     const finished = index >= s.steps.length ? Date.now() : undefined;
     const next = bumpDay(p, { t: Math.max(0, Math.min(90, Math.round(seconds))) });
-    return { ...next, session: { ...s, index, pending: undefined, finished } };
+    return withSession(atlas, next, { ...s, index, pending: undefined, finished });
   });
 }
 

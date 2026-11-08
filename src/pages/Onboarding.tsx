@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useAtlas } from "../atlas/context";
-import { BOOKS, bookById, suggestBook } from "../lib/books";
+import { BOOKS, bookById, bookTag, suggestBook } from "../lib/books";
 import { APP_NAME } from "../lib/unit";
 import { store, useStore } from "../store/store";
 import { StartChoice } from "../ui/StartPicker";
@@ -14,6 +14,7 @@ export function Onboarding() {
   const [step, setStep] = useState<1 | 2>(1);
   const [book, setBook] = useState(() => suggestBook());
   const [level, setLevel] = useState(0);
+  const current = bookById(settings.book);
 
   // 选好册数先存下来，第二步的单元列表就是这一册的
   const next = () => {
@@ -35,7 +36,7 @@ export function Onboarding() {
             <>
               <h1 className="display">你在学哪一册？</h1>
               <fieldset>
-                <legend>人教版</legend>
+                <legend>英语教材</legend>
                 <div className="choice-grid">
                   {BOOKS.map((b) => (
                     <button
@@ -45,7 +46,7 @@ export function Onboarding() {
                       aria-disabled={!b.ready}
                       onClick={() => (b.ready ? setBook(b.id) : toast(`${b.name}还在准备中`, "warn"))}
                     >
-                      <b>{b.name}</b>
+                      <b>{b.edition ? bookTag(b.id) : b.name}</b>
                       <small>{b.ready ? (b.id === suggestBook() ? "这学期" : "可以学") : "准备中"}</small>
                     </button>
                   ))}
@@ -58,7 +59,7 @@ export function Onboarding() {
           ) : (
             <>
               <h1 className="display">
-                {bookById(settings.book).name}，
+                {current.edition ? bookTag(current.id) : current.name}，
                 <br />
                 {atlas.count.toLocaleString()} 颗星等你点亮。
               </h1>

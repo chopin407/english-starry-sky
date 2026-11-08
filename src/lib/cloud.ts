@@ -243,7 +243,7 @@ function writeCheckpoint(value: LanCheckpoint | null) {
 function captureLan(): LanSnapshot {
   const { progress, settings } = store.get();
   return JSON.parse(JSON.stringify({
-    app: "word-atlas", version: 2, progress: { ...progress, session: null }, settings, qa: exportQa(),
+    app: "word-atlas", version: 2, progress: { ...progress, session: null, sessions: undefined }, settings, qa: exportQa(),
   }));
 }
 

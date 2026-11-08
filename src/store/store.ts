@@ -52,7 +52,9 @@ export interface Progress {
   bookmarks: string[];
   days: Record<string, DayStat>;
   typing: TypingRound[];
+  /** 旧版只存一轮，读取后按新词归入对应教材。 */
   session: ActiveSession | null;
+  sessions?: Record<string, ActiveSession>;
   /** Rolling list of recent mistakes, newest first. */
   mistakes: string[];
   practiceReviews: Record<string, PracticeReview>;
@@ -162,6 +164,11 @@ function validCard(v: unknown): v is CardState {
   );
 }
 
+function validSession(v: unknown): v is ActiveSession {
+  return isObj(v) && typeof v.id === "string" && Array.isArray(v.steps) && num(v.index, 0) &&
+    isObj(v.graded) && Array.isArray(v.newIds) && Array.isArray(v.reviewIds);
+}
+
 export function sanitizeProgress(v: unknown, datasetId: string): Progress {
   const out = emptyProgress(datasetId);
   if (!isObj(v) || v.version !== 2) return out;
@@ -191,9 +198,9 @@ export function sanitizeProgress(v: unknown, datasetId: string): Progress {
     for (const [k, r] of Object.entries(v.reading))
       if (/^[\w-]{1,20}$/.test(k) && isObj(r) && num(r.at, 0) && num(r.total, 1, 50) && num(r.right, 0, r.total as number))
         out.reading[k] = { at: r.at as number, right: r.right as number, total: r.total as number };
-  const s = v.session;
-  if (isObj(s) && typeof s.id === "string" && Array.isArray(s.steps) && num(s.index, 0) && isObj(s.graded))
-    out.session = s as unknown as ActiveSession;
+  if (validSession(v.session)) out.session = v.session;
+  if (isObj(v.sessions))
+    out.sessions = Object.fromEntries(Object.entries(v.sessions).filter((entry): entry is [string, ActiveSession] => validSession(entry[1])));
   return out;
 }
 
@@ -339,7 +346,7 @@ export function toggleBookmark(id: string) {
 export function exportBackup() {
   flush();
   const { progress, settings } = state;
-  return JSON.stringify({ app: "word-atlas", version: 2, exported: new Date().toISOString(), progress: { ...progress, session: null }, settings }, null, 1);
+  return JSON.stringify({ app: "word-atlas", version: 2, exported: new Date().toISOString(), progress: { ...progress, session: null, sessions: undefined }, settings }, null, 1);
 }
 
 function markDirty() {
@@ -357,7 +364,7 @@ export function importBackup(text: string): { ok: true; cards: number } | { ok: 
     return { ok: false, error: "这不是词光的学习备份。" };
   const id = state.progress.datasetId;
   if (data.progress.datasetId !== id) return { ok: false, error: "备份来自另一个词库，请先切换到对应词库。" };
-  const progress = sanitizeProgress({ ...data.progress, session: null }, id);
+  const progress = sanitizeProgress({ ...data.progress, session: null, sessions: undefined }, id);
   const restored = sanitizeSettings({ ...(data.settings as object), onboarded: true }); // 旧备份没有 starts，会按 startLevel 补上
   state = { ...state, progress, settings: restored };
   emit();
@@ -378,7 +385,7 @@ export function applySyncedProgress(progress: unknown, settings: unknown) {
   if (!isObj(progress) || progress.datasetId !== id) throw new Error("存档词库不匹配");
   state = {
     ...state,
-    progress: sanitizeProgress({ ...progress, session: state.progress.session }, id),
+    progress: sanitizeProgress({ ...progress, session: state.progress.session, sessions: state.progress.sessions }, id),
     settings: sanitizeSettings(settings),
   };
   emit();

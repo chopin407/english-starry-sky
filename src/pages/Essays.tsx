@@ -1,16 +1,20 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BOOKS, bookById } from "../lib/books";
+import { BOOKS, bookById, bookTag } from "../lib/books";
 import { essaysByBook, type Essay } from "../lib/essays";
 import { href, type Route } from "../lib/router";
 import { useStore } from "../store/store";
 
 const essaysFor = (book: string) => essaysByBook[`../data/essays/${book}.ts`] ?? [];
 const books = BOOKS.filter(({ id }) => essaysFor(id).length > 0);
+const essayBookName = (id: string) => {
+  const book = bookById(id);
+  return book.edition ? bookTag(book.id) : book.name;
+};
 
 export default function Essays({ route }: { route: Extract<Route, { page: "essays" }> }) {
   const currentBook = useStore((s) => s.settings.book);
-  const book = route.book ?? (essaysFor(currentBook).length ? currentBook : (books[0]?.id ?? currentBook));
+  const book = BOOKS.find(({ id }) => id === route.book)?.id ?? bookById(currentBook).id;
   const essays = essaysFor(book);
   const essay = essays.find(({ id }) => id === route.essay);
 
@@ -23,27 +27,27 @@ export default function Essays({ route }: { route: Extract<Route, { page: "essay
   return (
     <div className="page essays">
       <header className="page-head">
-        <p className="eyebrow">英语写作 · {bookById(book).name}</p>
+        <p className="eyebrow">英语写作 · {essayBookName(book)}</p>
         <h1 className="display">写作范文</h1>
         <p className="lede">按主题读范文，学会组织段落、选用句型，并把重点词句用到自己的作文里。</p>
       </header>
       {books.length > 1 && (
         <nav className="chips essay-books" aria-label="范文册数">
-          {books.map(({ id, name }) => (
+          {books.map(({ id }) => (
             <a
               key={id}
               className={`chip-btn ${id === book ? "is-on" : ""}`}
               aria-current={id === book ? "page" : undefined}
               href={href({ page: "essays", book: id })}
             >
-              {name}
+              {essayBookName(id)}
             </a>
           ))}
         </nav>
       )}
       {route.essay && <p className="muted">这篇范文在当前目录中找不到。</p>}
       {essays.length ? (
-        <ul className="essay-list" aria-label={`${bookById(book).name}范文目录`}>
+        <ul className="essay-list" aria-label={`${essayBookName(book)}范文目录`}>
           {essays.map((item) => (
             <li key={item.id}>
               <a className="panel essay-card" href={href({ page: "essays", book, essay: item.id })}>
@@ -63,9 +67,9 @@ export default function Essays({ route }: { route: Extract<Route, { page: "essay
       ) : (
         <p className="panel">
           本册暂无范文。
-          {books.length > 0 && (
+          {books.length === 1 && (
             <a className="link" href={href({ page: "essays", book: books[0].id })}>
-              查看{books[0].name}范文
+              查看{essayBookName(books[0].id)}范文
             </a>
           )}
         </p>
@@ -83,7 +87,7 @@ function EssayDetail({ essay, book }: { essay: Essay; book: string }) {
       </a>
       <header className="page-head">
         <p className="eyebrow">
-          {bookById(book).name} · {essay.topic}
+          {essayBookName(book)} · {essay.topic}
         </p>
         <h1 className="display">{essay.title}</h1>
         <p className="essay-english-title" lang="en">

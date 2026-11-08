@@ -1,0 +1,648 @@
+{
+  "book": "fltrp9a",
+  "cats": [
+    {
+      "id": "grammar",
+      "name": "语法"
+    }
+  ],
+  "units": [
+    {
+      "unit": "unit-1",
+      "title": "Unit 1 · Teenagers today",
+      "points": [
+        {
+          "id": "fltrp9a-u1-if",
+          "cat": "grammar",
+          "kp": "条件状语从句",
+          "title": "if 与 unless 引导的条件从句",
+          "explain": "if 表示「如果」，unless 表示「除非」。谈论将来可能发生的事，主句可用 will，从句通常用一般现在时。主句也可以用祈使句提出建议。",
+          "examples": [
+            {
+              "en": "If you enjoy folk arts, join our puppet group.",
+              "zh": "如果你喜欢民间艺术，就加入我们的木偶表演小组吧。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "If she ______ free tomorrow, she will join the performance.",
+              "o": [
+                "will be",
+                "is",
+                "was",
+                "has been"
+              ],
+              "a": 1,
+              "e": "谈论将来的条件时，if 从句通常用一般现在时。"
+            },
+            {
+              "t": "fill",
+              "q": "We won't give up ______ we have no other choice.",
+              "a": [
+                "unless"
+              ],
+              "e": "unless 表示「除非」。句意是除非别无选择，否则我们不会放弃。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "you",
+                "If",
+                "help",
+                "need",
+                "ask",
+                "me",
+                ",",
+                "."
+              ],
+              "a": "If you need help, ask me.",
+              "e": "if 条件从句放在句首，之后用逗号和祈使句连接。"
+            }
+          ]
+        },
+        {
+          "id": "fltrp9a-u1-because",
+          "cat": "grammar",
+          "kp": "原因状语从句",
+          "title": "用 because 和 since 说明原因",
+          "explain": "because 说明直接原因，可回答 Why 提问。since 也可以说明双方已知或容易理解的原因。because 从句和主句之间无需再加 so。",
+          "examples": [
+            {
+              "en": "The audience cheered because the performance was amazing.",
+              "zh": "观众欢呼起来，因为表演很精彩。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "Why did you join the programme? — ______ I wanted to learn about folk arts.",
+              "o": [
+                "Though",
+                "If",
+                "Because",
+                "Unless"
+              ],
+              "a": 2,
+              "e": "回答 Why 的直接原因用 Because。"
+            },
+            {
+              "t": "fill",
+              "q": "______ we all know the rules, let's start the performance.",
+              "a": [
+                "Since",
+                "As",
+                "Because"
+              ],
+              "e": "引导原因从句。Since 尤其适合说明双方都知道的情况。"
+            },
+            {
+              "t": "choice",
+              "q": "Choose the correct sentence.",
+              "o": [
+                "Because she practised, she improved.",
+                "Because she practised, so she improved.",
+                "She improved because did she practise.",
+                "She improved unless she practised."
+              ],
+              "a": 0,
+              "e": "because 已经连接原因和结果，无需再用 so。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "unit-2",
+      "title": "Unit 2 · On the money",
+      "points": [
+        {
+          "id": "fltrp9a-u2-time",
+          "cat": "grammar",
+          "kp": "时间状语从句",
+          "title": "用 when、while 和 as soon as 说明时间",
+          "explain": "when 可以引出时间点或时间段。while 强调某个持续动作正在进行。as soon as 表示「一……就……」。谈论将来的动作时，时间从句通常用一般现在时。",
+          "examples": [
+            {
+              "en": "I'll make a budget as soon as I get home.",
+              "zh": "我一到家就会做预算。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "I'll call you as soon as I ______ home.",
+              "o": [
+                "will get",
+                "got",
+                "get",
+                "getting"
+              ],
+              "a": 2,
+              "e": "as soon as 引导将来时间从句时用一般现在时。"
+            },
+            {
+              "t": "fill",
+              "q": "I made a shopping list ______ my sister was checking the prices.",
+              "a": [
+                "while",
+                "when",
+                "as"
+              ],
+              "e": "while 最能强调在核对价格的过程中，另一个动作同时发生。"
+            },
+            {
+              "t": "fill",
+              "q": "We stayed in the shop ______ the rain stopped.",
+              "a": [
+                "until"
+              ],
+              "e": "until 表示「直到」。"
+            }
+          ]
+        },
+        {
+          "id": "fltrp9a-u2-place",
+          "cat": "grammar",
+          "kp": "地点状语从句",
+          "title": "用 where 和 wherever 说明地点",
+          "explain": "where 引出某个地点，wherever 强调「无论在哪里」。地点从句说明主句中的动作发生在什么地方。",
+          "examples": [
+            {
+              "en": "Put your moneybox where you can find it easily.",
+              "zh": "把存钱罐放在你容易找到的地方。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "Put the moneybox ______ you can see it every day.",
+              "o": [
+                "who",
+                "where",
+                "what",
+                "although"
+              ],
+              "a": 1,
+              "e": "从句表示存钱罐应该放在哪里，用 where。"
+            },
+            {
+              "t": "fill",
+              "q": "______ you go, keep track of what you spend.",
+              "a": [
+                "Wherever"
+              ],
+              "e": "wherever 表示「无论你去哪里」。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "the",
+                "where",
+                "prices",
+                "Shop",
+                "are",
+                "lower",
+                "."
+              ],
+              "a": "Shop where the prices are lower.",
+              "e": "where 从句说明购物的地点。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "unit-3",
+      "title": "Unit 3 · Past passing by",
+      "points": [
+        {
+          "id": "fltrp9a-u3-purpose",
+          "cat": "grammar",
+          "kp": "目的状语从句",
+          "title": "用 so that 表示目的",
+          "explain": "so that 表示「以便」时，引出的从句说明做某事的目的。从句中常出现 can、could 或其他情态动词。",
+          "examples": [
+            {
+              "en": "The guide spoke slowly so that everyone could follow her.",
+              "zh": "导游讲得很慢，好让大家都能听懂。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "We took notes ______ we could remember the story.",
+              "o": [
+                "so that",
+                "unless",
+                "such that",
+                "even though"
+              ],
+              "a": 0,
+              "e": "记笔记的目的是记住故事，用 so that。"
+            },
+            {
+              "t": "fill",
+              "q": "They added pictures ______ visitors could understand the history more easily.",
+              "a": [
+                "so that"
+              ],
+              "e": "so that 连接动作和目的。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "I",
+                "a",
+                "map",
+                "brought",
+                "we",
+                "so",
+                "that",
+                "find",
+                "could",
+                "museum",
+                "the",
+                "."
+              ],
+              "a": "I brought a map so that we could find the museum.",
+              "e": "先说明带地图，再用 so that 引出目的。"
+            }
+          ]
+        },
+        {
+          "id": "fltrp9a-u3-result",
+          "cat": "grammar",
+          "kp": "结果状语从句",
+          "title": "区分 so … that 与 such … that",
+          "explain": "so 后通常接形容词或副词，such 后接名词短语。两种结构都用 that 从句交代实际结果。",
+          "examples": [
+            {
+              "en": "The statue was so heavy that we couldn't move it.",
+              "zh": "雕像太重了，我们搬不动它。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "The collection was ______ valuable that the museum kept it safe.",
+              "o": [
+                "such",
+                "so",
+                "too",
+                "very"
+              ],
+              "a": 1,
+              "e": "valuable 是形容词，用 so valuable that。"
+            },
+            {
+              "t": "fill",
+              "q": "It was ______ a noisy room that I couldn't hear the guide.",
+              "a": [
+                "such"
+              ],
+              "e": "a noisy room 是名词短语，用 such。"
+            },
+            {
+              "t": "choice",
+              "q": "It was ______ an interesting exhibition ______ I visited it twice.",
+              "o": [
+                "so; that",
+                "such; to",
+                "such; that",
+                "too; that"
+              ],
+              "a": 2,
+              "e": "an interesting exhibition 是名词短语，结果用 that 从句。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "unit-4",
+      "title": "Unit 4 · Heroes",
+      "points": [
+        {
+          "id": "fltrp9a-u4-who-subject",
+          "cat": "grammar",
+          "kp": "定语从句",
+          "title": "who 在定语从句中作主语",
+          "explain": "先行词指人时，可以用 who 引出定语从句。who 在从句中作主语时，后面直接接谓语，不能省略或再加一个主语代词。",
+          "examples": [
+            {
+              "en": "I admire people who help others in difficult times.",
+              "zh": "我敬佩在困难时刻帮助别人的人。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "The woman ______ helped us is a pilot.",
+              "o": [
+                "which",
+                "where",
+                "when",
+                "who"
+              ],
+              "a": 3,
+              "e": "先行词 the woman 指人，who 在从句中作主语。"
+            },
+            {
+              "t": "choice",
+              "q": "Choose the correct sentence.",
+              "o": [
+                "The person who she helped me is a pilot.",
+                "The person who helped me is a pilot.",
+                "The person helped me is a pilot.",
+                "The person where helped me is a pilot."
+              ],
+              "a": 1,
+              "e": "who 已经是从句的主语，无需再加 she。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "people",
+                "admire",
+                "I",
+                "who",
+                "others",
+                "help",
+                "."
+              ],
+              "a": "I admire people who help others.",
+              "e": "who help others 修饰 people。"
+            }
+          ]
+        },
+        {
+          "id": "fltrp9a-u4-who-object",
+          "cat": "grammar",
+          "kp": "定语从句",
+          "title": "who 在定语从句中作宾语",
+          "explain": "如果从句已经有主语，指人的 who 可以充当从句的宾语。在限定性定语从句中，这种宾语关系词通常可以省略。",
+          "examples": [
+            {
+              "en": "The pilot who we interviewed told us about her work.",
+              "zh": "我们采访的飞行员向我们讲述了她的工作。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "In 'The pilot who we interviewed was very kind', who is the object of ______.",
+              "o": [
+                "was",
+                "pilot",
+                "interviewed",
+                "kind"
+              ],
+              "a": 2,
+              "e": "we 是从句主语，who 指接受采访的飞行员，是 interviewed 的宾语。"
+            },
+            {
+              "t": "choice",
+              "q": "Which sentence can omit who?",
+              "o": [
+                "The boy who won the race is my brother.",
+                "The girl who helped me is here.",
+                "The teacher who teaches English is kind.",
+                "The hero who we interviewed is here."
+              ],
+              "a": 3,
+              "e": "最后一句从句中已有 we，who 作 interviewed 的宾语，可以省略。"
+            },
+            {
+              "t": "fill",
+              "q": "用 who 填空。The person ______ we met is a local hero.",
+              "a": [
+                "who"
+              ],
+              "e": "the person 指人，who 在 we met 中作宾语。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "unit-5",
+      "title": "Unit 5 · A fine balance",
+      "points": [
+        {
+          "id": "fltrp9a-u5-that-which",
+          "cat": "grammar",
+          "kp": "定语从句",
+          "title": "用 that 和 which 描述事物",
+          "explain": "限定性定语从句的先行词指物时，一般可以用 that 或 which。两者都可以在从句中作主语或宾语。that 也可以指人。",
+          "examples": [
+            {
+              "en": "The camera which records wildlife runs on solar power.",
+              "zh": "这台记录野生动物的相机靠太阳能运行。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "This is a camera ______ records wildlife at night.",
+              "o": [
+                "when",
+                "where",
+                "which",
+                "who"
+              ],
+              "a": 2,
+              "e": "先行词 a camera 指物，which 在从句中作主语。"
+            },
+            {
+              "t": "fill",
+              "q": "The microphone ______ we bought works well.",
+              "a": [
+                "that",
+                "which"
+              ],
+              "e": "先行词指物，关系词是 bought 的宾语，that 和 which 都可用。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "is",
+                "a",
+                "device",
+                "This",
+                "records",
+                "which",
+                "sound",
+                "."
+              ],
+              "a": "This is a device which records sound.",
+              "e": "which records sound 修饰 a device。"
+            }
+          ]
+        },
+        {
+          "id": "fltrp9a-u5-omit",
+          "cat": "grammar",
+          "kp": "定语从句",
+          "title": "判断关系词能否省略",
+          "explain": "限定性定语从句中，关系词作宾语时通常可以省略。关系词作主语时要保留。先找从句里是否已有主语，再判断关系词的作用。",
+          "examples": [
+            {
+              "en": "The film we watched was about protecting rainforests.",
+              "zh": "我们看的电影讲的是如何保护雨林。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "Which sentence can omit that?",
+              "o": [
+                "The camera that records birds is new.",
+                "The device that uses solar power is here.",
+                "The report that you wrote is useful.",
+                "The forest that lies nearby is protected."
+              ],
+              "a": 2,
+              "e": "you 是从句主语，that 是 wrote 的宾语。"
+            },
+            {
+              "t": "choice",
+              "q": "Which sentence is correct?",
+              "o": [
+                "The camera records birds is new.",
+                "The camera that records birds is new.",
+                "The camera where records birds is new.",
+                "The camera it records birds is new."
+              ],
+              "a": 1,
+              "e": "关系词在从句中作主语，不能省略或用 it 替代。"
+            },
+            {
+              "t": "fill",
+              "q": "补上一个关系词。The device ______ the school bought works well.",
+              "a": [
+                "that",
+                "which"
+              ],
+              "e": "指物的关系词在从句中作宾语，可用 that 或 which。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "unit-6",
+      "title": "Unit 6 · Live green",
+      "points": [
+        {
+          "id": "fltrp9a-u6-compound",
+          "cat": "grammar",
+          "kp": "构词法",
+          "title": "合成词与词类转化",
+          "explain": "合成是把两个或更多词组成一个新词，如 tooth + brush → toothbrush。转化是拼写形式不变而词性改变，要根据句中位置和意思判断。",
+          "examples": [
+            {
+              "en": "The report highlights the problem of plastic waste.",
+              "zh": "这份报告强调了塑料垃圾的问题。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "Which word is formed by putting two words together?",
+              "o": [
+                "wisely",
+                "toothbrush",
+                "reuse",
+                "pollution"
+              ],
+              "a": 1,
+              "e": "toothbrush 由 tooth 和 brush 合成。"
+            },
+            {
+              "t": "fill",
+              "q": "用 tooth 和 brush 合成一个词。",
+              "a": [
+                "toothbrush"
+              ],
+              "e": "tooth + brush 构成表示「牙刷」的名词。"
+            },
+            {
+              "t": "choice",
+              "q": "In 'We should shape the material', shape is a ______.",
+              "o": [
+                "noun",
+                "verb",
+                "adjective",
+                "adverb"
+              ],
+              "a": 1,
+              "e": "情态动词 should 后接动词原形，shape 在这里表示「使成形」。"
+            }
+          ]
+        },
+        {
+          "id": "fltrp9a-u6-affixes",
+          "cat": "grammar",
+          "kp": "构词法",
+          "title": "用前缀和后缀推断词义",
+          "explain": "派生是在词根或词基上加前缀或后缀。re- 常表示「再次」，-al 可构成形容词，-ly 常把形容词变成副词。判断时还要结合上下文。",
+          "examples": [
+            {
+              "en": "We can reuse these bottles and use materials more wisely.",
+              "zh": "我们可以重复使用这些瓶子，更明智地利用材料。"
+            }
+          ],
+          "exampleAudio": false,
+          "questions": [
+            {
+              "t": "choice",
+              "q": "What does re- mean in reuse?",
+              "o": [
+                "not",
+                "again",
+                "before",
+                "under"
+              ],
+              "a": 1,
+              "e": "re- 表示「再次」，reuse 表示「再使用」。"
+            },
+            {
+              "t": "fill",
+              "q": "Use the material ______ (wise).",
+              "a": [
+                "wisely"
+              ],
+              "e": "修饰动词 use 用副词 wisely。"
+            },
+            {
+              "t": "fill",
+              "q": "We discussed the ______ (environment) problems caused by plastic.",
+              "a": [
+                "environmental"
+              ],
+              "e": "修饰名词 problems 要用形容词 environmental。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "appendix",
+      "title": "专有名词与不规则动词",
+      "label": "附录",
+      "points": []
+    }
+  ]
+}

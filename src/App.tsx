@@ -133,6 +133,7 @@ export default function App() {
 }
 
 function Shell({ privateAvailable }: { privateAvailable: boolean }) {
+  const atlas = useAtlas();
   const { route, word } = useLocation();
   const nav = useNav();
   const challenge = useStore((s) => s.settings.challenge);
@@ -210,7 +211,7 @@ function Shell({ privateAvailable }: { privateAvailable: boolean }) {
         </header>
       )}
 
-      <main className="main" id="main">
+      <main className="main" id="main" key={atlas.book ?? atlas.id}>
         {route.page === "today" && <Today />}
         {route.page === "atlas" && <AtlasPage route={route} />}
         {route.page === "learn" && <Learn />}

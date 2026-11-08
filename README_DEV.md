@@ -1,6 +1,6 @@
 # 英语星空（新版）
 
-人教版英语练习网页，收录 PEP 六上和初中英语五册。界面基于开源项目 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。
+英语练习网页，收录人教版 PEP 六上、初中英语五册及外研版九年级。界面基于开源项目 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。
 
 ## 打开方式
 在这个文件夹里运行：
@@ -130,3 +130,15 @@ python -X utf8 scripts/import_pep6a.py scripts/build/pep6a "G:\opensoure\word-at
 ```
 
 传入逐词识别结果时，导入器会为与课本原文对齐的句子生成点读时间。识别 JSON 可用 `pipeline/transcribe_book_audio.py` 生成。省略 `--transcript` 可生成整段播放数据。导入器同时切出单词原声，从词光匹配插画、美音和例句。语法与句型练习在 `public/data/6a-points.json` 维护。
+
+### 重新生成外研版九年级（fltrp9a）
+
+当前教材素材来自九年级上册。将平台的 `relation_audios.json` 和按清单顺序编号的 50 条 MP3 放入 `scripts/build/fltrp9a/`，MP3 存在其 `mp3/` 子目录。需要 Python 3.11+、`pypdf`、`ffmpeg` 和 `ffprobe`。
+
+```powershell
+python -X utf8 scripts/import_fltrp9a.py scripts/build/fltrp9a "G:\opensoure\word-atlas"
+```
+
+脚本先比对平台 MP3 的校验值，再按词表切分单词原声并导入全册录音。词表在 `scripts/fltrp9a_vocab.tsv`，练习在 `public/data/fltrp9a-points.json`。同一目录若有 `ocr-lessons.json` 和 `transcript.json`，脚本还会生成课文点读。前者按 `lesson-009` 这类 PDF 零基页号存放 OCR 行，后者按 `001` 这类音频编号存放文字与起止秒数。
+
+六个单元的原创写作范文在 `src/data/essays/fltrp9a.ts` 维护。

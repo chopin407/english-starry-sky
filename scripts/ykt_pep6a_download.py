@@ -5,16 +5,15 @@ from __future__ import annotations
 
 import argparse
 import http.client
+import json
 import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urljoin, urlsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
-
-from ykt_pdf_download import parse_viewer_link
 
 PEP_PAGE = "https://www.pep.com.cn/zslth/yyptzy/xypep/6s/"
 PDF_VIEWER = "https://x-edu-pdfjs.ykt.eduyun.cn/generic/web/viewer.html"
@@ -84,6 +83,20 @@ class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         # 授权头只发送到教材文件本身的地址。
         return None
+
+
+def parse_viewer_link(link: str) -> tuple[str, dict[str, str]]:
+    # 查看器的签名包含字面量 +，不能按表单编码把它解成空格。
+    query = {
+        unquote(key): unquote(value)
+        for part in urlsplit(link).query.split("&")
+        for key, sep, value in [part.partition("=")]
+        if sep
+    }
+    headers = json.loads(query.get("headers", "{}"))
+    if "file" not in query or not isinstance(headers, dict):
+        raise ValueError("查看器参数无效")
+    return query["file"], headers
 
 
 def pdf_request(source: Path) -> Request:

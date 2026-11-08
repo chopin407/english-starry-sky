@@ -1,9 +1,36 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { sanitizeProgress, sanitizeSettings } from "./store";
+import type { Atlas, WordRef } from "../atlas/types";
+import { sessionFor, withSession } from "./session";
+import { emptyProgress, sanitizeProgress, sanitizeSettings, type ActiveSession } from "./store";
 import { practiceKey, updatePracticeReview } from "./practiceReview";
 
 const card = { due: 1, s: 2, d: 5, el: 0, sd: 1, ls: 0, reps: 1, lapses: 0, st: 2, seen: 1 };
+
+test("switching books keeps each journey and files a legacy journey under its original book", () => {
+  const makeBook = (book: string, id: string) => {
+    const ref: WordRef = { id, order: 0, word: id, zh: "", ipa: "", cefr: 0, topic: 0, media: 0 };
+    return { book, words: [ref], byId: new Map([[id, ref]]) } as Atlas;
+  };
+  const seven = makeBook("7a", "hello");
+  const nine = makeBook("fltrp9a", "fltrp9a-lady");
+  const shelf = [seven, nine];
+  const current = { ...nine, shelf, byId: new Map([...nine.byId, ...seven.byId]) };
+  const makeSession = (id: string): ActiveSession => ({
+    id, started: 1, steps: [{ id, kind: "intro" }, { id, kind: "meaning" }],
+    index: 1, graded: {}, newIds: [id], reviewIds: [],
+  });
+  const old = makeSession("hello");
+  const fresh = makeSession("fltrp9a-lady");
+  const legacy = { ...emptyProgress("pep-7a"), session: old };
+  assert.equal(sessionFor(current, legacy), null);
+  const saved = sanitizeProgress(JSON.parse(JSON.stringify(withSession(current, legacy, fresh))), "pep-7a");
+  assert.deepEqual(sessionFor(seven, saved), old);
+  assert.deepEqual(sessionFor(current, saved), fresh);
+  const done = withSession(current, saved, null);
+  assert.equal(sessionFor(current, done), null);
+  assert.deepEqual(sessionFor(seven, done), old);
+});
 
 test("keeps valid progress and drops malformed records", () => {
   const p = sanitizeProgress(

@@ -140,13 +140,13 @@ def tokens(text):
     return [m[0].lower().replace("’", "'") for m in TOKEN.finditer(text)]
 
 
-def point_reading(words, book_text, duration):
+def point_reading(words, book_text, duration, *, segment_timestamps=False):
     spans = list(TOKEN.finditer(book_text))
     reference = [m[0].lower().replace("’", "'") for m in spans]
     lines, phrase = [], []
     for i, (word, start, end) in enumerate(words):
         phrase.append((word, start, end))
-        if i + 1 < len(words) and not word.endswith((".", "?", "!")) and words[i + 1][1] - end < 0.8:
+        if not segment_timestamps and i + 1 < len(words) and not word.endswith((".", "?", "!")) and words[i + 1][1] - end < 0.8:
             continue
         heard = tokens(" ".join(w[0] for w in phrase))
         if len(heard) >= 3:

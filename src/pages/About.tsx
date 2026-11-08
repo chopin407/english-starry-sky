@@ -17,7 +17,8 @@ export function About() {
   const GRADE: Record<string, string> = { "6": "六年级", "7": "七年级", "8": "八年级", "9": "九年级" };
   const grades = new Map<string, number>();
   for (const b of shelf) {
-    const g = GRADE[(b.book ?? "")[0]] ?? bookById(b.book ?? "").name;
+    const book = bookById(b.book ?? "");
+    const g = book.edition ? `${book.edition}${book.name}` : (GRADE[(b.book ?? "")[0]] ?? book.name);
     grades.set(g, (grades.get(g) ?? 0) + b.count);
   }
   const papers = exams?.papers ?? [];
@@ -36,7 +37,7 @@ export function About() {
             <span className="nowrap">一个一个点亮。</span>
           </h1>
           <p className="lede">
-            人教版《英语》各册单元词表里的 {total.toLocaleString()} 个词条（不含人名），配有课本原声、词义和例句。课本页按单元整理了原声录音、课文点读和语法句型练习，初中册另有河南中考真题提示。
+            人教版和外研版《英语》各册单元词表里的 {total.toLocaleString()} 个词条（不含人名），配有课本原声、词义和例句。课本页按单元整理了原声录音、课文点读和语法句型练习，部分册次另有河南中考真题提示。
           </p>
           <p className="lede">用自己的名字和密码登录，学习进度自动保存到云端，换手机也能接着学。</p>
           {grades.size > 1 && (
@@ -81,7 +82,7 @@ export function About() {
           <h3 className="eyebrow">每天来一点</h3>
           <ul className="feature-list">
             <li>
-              <b>切换册数。</b>点左上角的册名，六上、七上、七下、八上、八下、九年级随时换。
+              <b>切换册数。</b>点左上角的册名，可在各册人教版教材和外研版九年级之间切换。
             </li>
             <li>
               <b>做完今天的任务，开宝箱。</b>右上角的宝箱图标是「我的宝库」：今日宝箱、学完一个单元的单元宝箱、连续 7 天的周宝箱，没开的可以攒着。
@@ -168,7 +169,7 @@ export function About() {
 
         <section className="panel">
           <h3 className="eyebrow">内容从哪里来</h3>
-          <p className="muted">单词表、音标、释义，单词和课文的录音，课文原文，都来自人教版初中《英语》教材，版权归人民教育出版社所有，经出版社同意用于非营利教学，禁止商用。</p>
+          <p className="muted">人教版教材词表、课文和配套录音的版权归人民教育出版社，经出版社同意用于非营利教学，禁止商用。外研版九年级上册的教材内容版权归外语教学与研究出版社。</p>
           <p className="muted">例句优先用课本原句，另一句选自河南中考真题和模拟卷；找不到合适原句的，标着「改编」或「拓展」。</p>
           <p className="muted">
             插画大部分由老师制作，另有一部分和美音、界面代码来自开源项目「词光 Word Atlas」（代码 MIT，词库与插画 CC BY 4.0，署名 Word Atlas contributors）。词光的插画和课本词义对不上的，已经去掉了。还没画好插画的词，先用 Google Noto Emoji（Apache 2.0）拼的补位图，老师的新图画好后会替换。
