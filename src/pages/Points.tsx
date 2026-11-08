@@ -34,12 +34,13 @@ export interface Point {
   kp: string;
   title: string;
   explain: string;
+  exampleAudio?: boolean;
   examples: { en: string; zh: string }[];
   questions: Q[];
 }
 interface PointsData {
   cats: { id: string; name: string }[];
-  units: { unit: string; points: Point[] }[];
+  units: { unit: string; title?: string; points: Point[] }[];
 }
 
 const usePoints = () => useBookData<PointsData>("points");
@@ -130,7 +131,7 @@ function stat(p: Point, rec: Record<string, Qa>) {
 
 export function PointsPage() {
   const d = usePoints();
-  useExams();
+  const exams = useExams();
   const [open, setOpen] = useState<Point | null>(null);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const { route } = useLocation();
@@ -149,15 +150,17 @@ export function PointsPage() {
   if (lesson) return <LessonView lesson={lesson} onBack={() => setLesson(null)} />;
   if (quiz) return <Quiz items={quiz.items} title={quiz.title} onExit={() => setQuiz(null)} />;
   if (open) return <PointDetail point={open} onBack={() => setOpen(null)} onPractice={(items) => setQuiz({ items, title: open.title })} />;
-  return <PointsHome d={d} onOpen={setOpen} onLesson={setLesson} />;
+  return <PointsHome d={d} showExamHints={Boolean(exams?.papers.length)} onOpen={setOpen} onLesson={setLesson} />;
 }
 
 function PointsHome({
   d,
+  showExamHints,
   onOpen,
   onLesson,
 }: {
   d: PointsData;
+  showExamHints: boolean;
   onOpen: (p: Point) => void;
   onLesson: (l: Lesson) => void;
 }) {
@@ -178,7 +181,10 @@ function PointsHome({
           <br className="br-sm" />
           一个单元一个单元学。
         </h1>
-        <p className="lede">每个单元先听读课文和对话（课本原声），再学语法和句型：{all.length} 个考点、{total} 道练习题，每题都有解析。标着「中考考过」的，河南中考真的考过。</p>
+        <p className="lede">
+          每个单元先听读课文和对话（课本原声），再学语法和句型。全册有 {all.length} 个考点、{total} 道练习题，每题都有解析。
+          {showExamHints && "标着「中考考过」的，河南中考真的考过。"}
+        </p>
       </header>
 
       <div className="chips pt-cats" role="group" aria-label="考点类型">
@@ -199,11 +205,11 @@ function PointsHome({
         const pts = cat === "lesson" ? [] : u.points.filter((p) => cat === "all" || p.cat === cat);
         const ls = cat === "all" || cat === "lesson" ? lessonsOf(lessons, u.unit) : [];
         if (!pts.length && !ls.length) return null;
-        const title = unitTitle(u.unit);
+        const title = u.title ?? unitTitle(u.unit);
         return (
           <section key={u.unit} className="pt-unit" id={`pt-${u.unit}`}>
             <h2 className="pt-unit-title">
-              <span className="station-mini">{unitShort(title)}</span>
+              <span className="station-mini">{u.unit === "revision" ? "复习" : unitShort(unitTitle(u.unit))}</span>
               {title}
             </h2>
             {ls.length > 0 && (
@@ -302,7 +308,7 @@ function PointDetail({ point, onBack, onPractice }: { point: Point; onBack: () =
             <li key={x.en}>
               <p className="ex-en" lang="en">
                 {x.en}
-                <Speak url={audioUrl(`${point.id}-ex${i}`)} text={x.en} size="sm" className="ex-speak" />
+                <Speak url={point.exampleAudio === false ? null : audioUrl(`${point.id}-ex${i}`)} text={x.en} size="sm" className="ex-speak" />
               </p>
               <p className="ex-zh">{x.zh}</p>
             </li>

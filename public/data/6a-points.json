@@ -1,0 +1,618 @@
+{
+  "book": "6a",
+  "cats": [
+    {
+      "id": "grammar",
+      "name": "语法"
+    },
+    {
+      "id": "sentence",
+      "name": "句型与交际"
+    }
+  ],
+  "units": [
+    {
+      "unit": "unit-1",
+      "points": [
+        {
+          "id": "6a-u1-past",
+          "cat": "grammar",
+          "kp": "一般过去时",
+          "title": "描述过去的旅行",
+          "explain": "last weekend 等时间提示动作发生在过去。规则动词一般加 -ed，如 climb → climbed。go、see、eat、take 的过去式分别是 went、saw、ate、took。",
+          "examples": [
+            {
+              "en": "We went to Xi'an and ate some noodles.",
+              "zh": "我们去了西安，吃了些面条。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "I ______ Mount Taishan last Saturday.",
+              "o": [
+                "climb",
+                "climbed",
+                "climbs",
+                "will climb"
+              ],
+              "a": 1,
+              "e": "last Saturday 指过去，climb 用过去式 climbed。"
+            },
+            {
+              "t": "fill",
+              "q": "We ______ (see) the old city wall yesterday.",
+              "a": [
+                "saw"
+              ],
+              "e": "see 的过去式是 saw。"
+            },
+            {
+              "t": "fill",
+              "q": "Amy ______ (take) some photos last weekend.",
+              "a": [
+                "took"
+              ],
+              "e": "take 的过去式是 took。"
+            }
+          ],
+          "exampleAudio": false
+        },
+        {
+          "id": "6a-u1-trip",
+          "cat": "sentence",
+          "kp": "特殊疑问句",
+          "title": "询问旅行去了哪里、做了什么",
+          "explain": "用 Where did you go? 问去处，用 What did you do there? 问活动。did 后面接动词原形，回答时用过去式。",
+          "examples": [
+            {
+              "en": "Where did you go over the holidays? — I went to Wuhan.",
+              "zh": "你假期去了哪里？——我去了武汉。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "— ______ did you go?\n— I went to Wuhan.",
+              "o": [
+                "What",
+                "Why",
+                "Where",
+                "Who"
+              ],
+              "a": 2,
+              "e": "答语说去了武汉，问去处用 Where。"
+            },
+            {
+              "t": "fill",
+              "q": "What did you ______ (do) there?",
+              "a": [
+                "do"
+              ],
+              "e": "助动词 did 已经表示过去，后面用原形 do。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "you",
+                "Where",
+                "go",
+                "did",
+                "?"
+              ],
+              "a": "Where did you go?",
+              "e": "Where + did + 主语 + 动词原形。"
+            }
+          ],
+          "exampleAudio": false
+        }
+      ],
+      "title": "Unit 1 · Amazing places"
+    },
+    {
+      "unit": "unit-2",
+      "points": [
+        {
+          "id": "6a-u2-did",
+          "cat": "grammar",
+          "kp": "一般过去时",
+          "title": "用 Did 询问过去的活动",
+          "explain": "一般疑问句用 Did + 主语 + 动词原形。简短肯定回答用 Yes, … did.，否定回答用 No, … didn't.。",
+          "examples": [
+            {
+              "en": "Did you eat mooncakes? — No, we didn't.",
+              "zh": "你们吃月饼了吗？——没有。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "Did you ______ down to midnight?",
+              "o": [
+                "counted",
+                "counts",
+                "counting",
+                "count"
+              ],
+              "a": 3,
+              "e": "Did 后用动词原形 count。"
+            },
+            {
+              "t": "fill",
+              "q": "— Did they dress in red?\n— Yes, they ______.",
+              "a": [
+                "did"
+              ],
+              "e": "Did 开头的疑问句用 did 作简短肯定回答。"
+            },
+            {
+              "t": "choice",
+              "q": "— Did she run in the race?\n— ______ She watched it.",
+              "o": [
+                "Yes, she does.",
+                "No, she didn't.",
+                "Yes, she did.",
+                "No, she doesn't."
+              ],
+              "a": 1,
+              "e": "她观看了比赛，因此否定回答用 No, she didn't.。"
+            }
+          ],
+          "exampleAudio": false
+        },
+        {
+          "id": "6a-u2-events",
+          "cat": "sentence",
+          "kp": "活动描述",
+          "title": "按顺序讲述节庆和活动",
+          "explain": "用 first、then、later 交代先后。回顾活动时注意不规则过去式，如 run → ran、sing → sang、wear → wore、win → won。",
+          "examples": [
+            {
+              "en": "First, we watched the race. Then we sang together.",
+              "zh": "我们先看了比赛，然后一起唱歌。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "fill",
+              "q": "We ______ (sing) some songs at the gala.",
+              "a": [
+                "sang"
+              ],
+              "e": "sing 的过去式是 sang。"
+            },
+            {
+              "t": "choice",
+              "q": "Our team ______ the race yesterday.",
+              "o": [
+                "won",
+                "win",
+                "wins",
+                "winning"
+              ],
+              "a": 0,
+              "e": "昨天发生的动作要用 win 的过去式 won。"
+            },
+            {
+              "t": "fill",
+              "q": "First we put on our shoes. ______ we ran the race.",
+              "a": [
+                "Then",
+                "Later"
+              ],
+              "e": "Then 或 Later 都能说明接下来发生了什么。"
+            }
+          ],
+          "exampleAudio": false
+        }
+      ],
+      "title": "Unit 2 · Getting together"
+    },
+    {
+      "unit": "unit-3",
+      "points": [
+        {
+          "id": "6a-u3-should",
+          "cat": "grammar",
+          "kp": "情态动词",
+          "title": "用 should 和 shouldn't 提建议",
+          "explain": "should 表示「应该」，shouldn't 表示「不应该」。两者后面都接动词原形。",
+          "examples": [
+            {
+              "en": "You should get enough sleep. You shouldn't stay up late.",
+              "zh": "你应该睡够，不应该熬夜。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "You have a fever. You should ______ a doctor.",
+              "o": [
+                "seeing",
+                "saw",
+                "see",
+                "sees"
+              ],
+              "a": 2,
+              "e": "情态动词 should 后用原形 see。"
+            },
+            {
+              "t": "fill",
+              "q": "You ______ (should not) stay up late.",
+              "a": [
+                "shouldn't",
+                "should not"
+              ],
+              "e": "should not 可以缩写为 shouldn't。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "enough",
+                "get",
+                "sleep",
+                "You",
+                "should",
+                "."
+              ],
+              "a": "You should get enough sleep.",
+              "e": "先说主语 You，再用 should + 动词原形。"
+            }
+          ],
+          "exampleAudio": false
+        },
+        {
+          "id": "6a-u3-health",
+          "cat": "sentence",
+          "kp": "交际用语",
+          "title": "询问身体状况",
+          "explain": "用 What's the matter? 或 What's wrong? 询问哪里不舒服。可以用 I have a cold / a fever / a cough 说明症状，再用 I'm sorry to hear that 表达关心。",
+          "examples": [
+            {
+              "en": "What's the matter? — I have a bad cold.",
+              "zh": "你怎么了？——我感冒很严重。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "— What's the matter?\n— ______",
+              "o": [
+                "I have a runny nose.",
+                "I visited a museum.",
+                "I'll buy a book.",
+                "It's a big race."
+              ],
+              "a": 0,
+              "e": "I have a runny nose. 表示「我流鼻涕」，能回答身体状况。"
+            },
+            {
+              "t": "fill",
+              "q": "I feel ill. I ______ a fever.",
+              "a": [
+                "have"
+              ],
+              "e": "have a fever 是「发烧」的固定表达。"
+            },
+            {
+              "t": "choice",
+              "q": "— I have a bad cough.\n— ______",
+              "o": [
+                "What a race!",
+                "That's a good trip.",
+                "I'm sorry to hear that.",
+                "Here is my spending plan."
+              ],
+              "a": 2,
+              "e": "听说对方不舒服时，可以用 I'm sorry to hear that. 表示关心。"
+            }
+          ],
+          "exampleAudio": false
+        }
+      ],
+      "title": "Unit 3 · Healthy life"
+    },
+    {
+      "unit": "unit-4",
+      "points": [
+        {
+          "id": "6a-u4-plan",
+          "cat": "grammar",
+          "kp": "一般将来时",
+          "title": "用 be going to 表达计划",
+          "explain": "用 am / is / are going to + 动词原形，说打算做的事。I 搭配 am，she/he 搭配 is，you/we/they 搭配 are。",
+          "examples": [
+            {
+              "en": "I'm going to save up for a microscope.",
+              "zh": "我打算攒钱买一台显微镜。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "She ______ going to save up for a bike.",
+              "o": [
+                "am",
+                "are",
+                "be",
+                "is"
+              ],
+              "a": 3,
+              "e": "主语是 She，be 动词用 is。"
+            },
+            {
+              "t": "fill",
+              "q": "We are going to ______ (buy) a dictionary.",
+              "a": [
+                "buy"
+              ],
+              "e": "going to 后接动词原形。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "I",
+                "to",
+                "going",
+                "am",
+                "save",
+                "money",
+                "."
+              ],
+              "a": "I am going to save money.",
+              "e": "I + am going to + 动词原形。"
+            }
+          ],
+          "exampleAudio": false
+        },
+        {
+          "id": "6a-u4-spend",
+          "cat": "sentence",
+          "kp": "用途表达",
+          "title": "谈论钱怎么花",
+          "explain": "用 How do you spend your money? 问钱怎么花。用 use … to + 动词原形说明用途。save up for 后面可以接想买的物品。",
+          "examples": [
+            {
+              "en": "We use money to buy goods and pay for services.",
+              "zh": "我们用钱购买商品和支付服务费用。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "We use money ______ buy a ticket.",
+              "o": [
+                "for",
+                "to",
+                "at",
+                "of"
+              ],
+              "a": 1,
+              "e": "用 to buy 说明用钱的目的。"
+            },
+            {
+              "t": "fill",
+              "q": "I want to save up ______ a computer.",
+              "a": [
+                "for"
+              ],
+              "e": "save up for a computer 表示攒钱买电脑。"
+            },
+            {
+              "t": "choice",
+              "q": "— How do you spend your pocket money?\n— ______",
+              "o": [
+                "It's sunny.",
+                "I went to Xi'an.",
+                "I buy books and save the rest.",
+                "It's on Mars."
+              ],
+              "a": 2,
+              "e": "答语要说钱怎么花或怎么存。"
+            }
+          ],
+          "exampleAudio": false
+        }
+      ],
+      "title": "Unit 4 · Managing money well"
+    },
+    {
+      "unit": "unit-5",
+      "points": [
+        {
+          "id": "6a-u5-facts",
+          "cat": "grammar",
+          "kp": "一般现在时",
+          "title": "用一般现在时描述太空事实",
+          "explain": "介绍恒常事实通常用一般现在时。Earth、the Moon 等单数主语后，实义动词用第三人称单数形式。复数主语后用原形。",
+          "examples": [
+            {
+              "en": "Earth travels around the Sun.",
+              "zh": "地球绕太阳运行。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "Earth ______ around the Sun.",
+              "o": [
+                "travel",
+                "travelled",
+                "travels",
+                "travelling"
+              ],
+              "a": 2,
+              "e": "主语 Earth 是单数，恒常事实用 travels。"
+            },
+            {
+              "t": "fill",
+              "q": "The Sun ______ (give) us light.",
+              "a": [
+                "gives"
+              ],
+              "e": "主语 The Sun 是单数，give 加 -s。"
+            },
+            {
+              "t": "fill",
+              "q": "Astronauts ______ (travel) into space.",
+              "a": [
+                "travel"
+              ],
+              "e": "Astronauts 是复数，动词用原形。"
+            }
+          ],
+          "exampleAudio": false
+        },
+        {
+          "id": "6a-u5-space",
+          "cat": "sentence",
+          "kp": "There be 句型",
+          "title": "介绍太空里有什么",
+          "explain": "There is 后接单数名词或不可数名词，There are 后接复数名词。把 is 或 are 提到句首，可以询问是否存在某事物。",
+          "examples": [
+            {
+              "en": "Are there any stars in the sky? — Yes, there are.",
+              "zh": "天空中有星星吗？——有。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "There ______ many stars in the sky.",
+              "o": [
+                "are",
+                "is",
+                "am",
+                "be"
+              ],
+              "a": 0,
+              "e": "many stars 是复数，要用 There are。"
+            },
+            {
+              "t": "fill",
+              "q": "______ there any water on Mars?",
+              "a": [
+                "Is"
+              ],
+              "e": "water 是不可数名词，疑问句用 Is there …?。"
+            },
+            {
+              "t": "order",
+              "w": [
+                "any",
+                "Are",
+                "there",
+                "stars",
+                "?"
+              ],
+              "a": "Are there any stars?",
+              "e": "疑问句把 Are 放到 there 前。"
+            }
+          ],
+          "exampleAudio": false
+        }
+      ],
+      "title": "Unit 5 · Exploring space"
+    },
+    {
+      "unit": "unit-6",
+      "points": [
+        {
+          "id": "6a-u6-need",
+          "cat": "grammar",
+          "kp": "情态与建议",
+          "title": "用 need to 说明节能行动",
+          "explain": "need to + 动词原形表示「需要做某事」。主语是第三人称单数时用 needs to。也可以用 should + 动词原形给出建议。",
+          "examples": [
+            {
+              "en": "We need to turn off lights at night.",
+              "zh": "我们需要在夜里把灯关掉。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "We need ______ save energy.",
+              "o": [
+                "on",
+                "at",
+                "of",
+                "to"
+              ],
+              "a": 3,
+              "e": "need to 后接动词原形 save。"
+            },
+            {
+              "t": "fill",
+              "q": "Everyone ______ (need) to save water.",
+              "a": [
+                "needs"
+              ],
+              "e": "Everyone 在语法上是单数，用 needs。"
+            },
+            {
+              "t": "fill",
+              "q": "We should ______ (reuse) bottles.",
+              "a": [
+                "reuse"
+              ],
+              "e": "should 后面接动词原形。"
+            }
+          ],
+          "exampleAudio": false
+        },
+        {
+          "id": "6a-u6-energy",
+          "cat": "sentence",
+          "kp": "祈使句",
+          "title": "说出节能与资源再利用的做法",
+          "explain": "建议或提醒可以用祈使句。肯定形式用动词原形开头，否定形式用 Don't + 动词原形。用 We use … to … 说明能源用途。",
+          "examples": [
+            {
+              "en": "Turn off the lights. Don't waste water.",
+              "zh": "关掉灯。不要浪费水。"
+            }
+          ],
+          "questions": [
+            {
+              "t": "choice",
+              "q": "______ the lights when you leave the room.",
+              "o": [
+                "Turn off",
+                "Turning off",
+                "Turns off",
+                "To turn off"
+              ],
+              "a": 0,
+              "e": "祈使句用动词原形 Turn 开头。"
+            },
+            {
+              "t": "fill",
+              "q": "______ waste water.",
+              "a": [
+                "Don't",
+                "Do not"
+              ],
+              "e": "否定祈使句以 Don't 或 Do not 开头。"
+            },
+            {
+              "t": "fill",
+              "q": "We use wind power ______ make electricity.",
+              "a": [
+                "to"
+              ],
+              "e": "用 to make 表示「用风能发电」的用途。"
+            }
+          ],
+          "exampleAudio": false
+        }
+      ],
+      "title": "Unit 6 · Energy, nature and us"
+    },
+    {
+      "unit": "revision",
+      "title": "Revision · Learning in museums",
+      "points": []
+    }
+  ]
+}

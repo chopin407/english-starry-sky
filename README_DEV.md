@@ -1,6 +1,6 @@
 # 英语星空（新版）
 
-人教版初中英语练习网页（七上、七下、八上、八下、九年级五册），界面基于开源项目 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。
+人教版英语练习网页，收录 PEP 六上和初中英语五册。界面基于开源项目 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。
 
 ## 打开方式
 在这个文件夹里运行：
@@ -120,3 +120,13 @@ uv pip install --python "$root/.sync-venv/bin/python" 'PyMySQL[rsa]>=1.1,<2'
 8. 没有插画的词：在 `scripts/fill_pics.tsv` 给每个词挑一两个表情，`python3 scripts/make_fill_pics.py ffmpeg` 画补位图（存 `../插画/补位图/`）。
 9. `python3 scripts/build_atlas.py ffmpeg <册号>` 生成图鉴；`build_lessons.py` + `copy_lesson_audio.py` 做课文点读。
 10. `src/lib/books.ts` 里把这一册标 `ready: true`，`public/sw.js` 的 VERSION 升一级。
+
+### 重新生成 PEP 六上（6a）
+
+把原始课本 PDF 和出版社的 50 条 MP3 放在 `scripts/build/pep6a/`。沿用下载工具的目录和三位数录音编号。Python 需要 `pypdf`，命令行需要 `ffmpeg` 和 `ffprobe`。
+
+```powershell
+python -X utf8 scripts/import_pep6a.py scripts/build/pep6a "G:\opensoure\word-atlas" --transcript scripts/build/pep6a/transcript.json
+```
+
+传入逐词识别结果时，导入器会为与课本原文对齐的句子生成点读时间。识别 JSON 可用 `pipeline/transcribe_book_audio.py` 生成。省略 `--transcript` 可生成整段播放数据。导入器同时切出单词原声，从词光匹配插画、美音和例句。语法与句型练习在 `public/data/6a-points.json` 维护。

@@ -14,7 +14,7 @@ export function About() {
   const shelf = atlas.shelf ?? [atlas];
   const total = shelf.reduce((n, b) => n + b.count, 0);
   // 下面那排数字按年级合计，不分上下册（以后加了七下、八下，自动并进七年级、八年级）
-  const GRADE: Record<string, string> = { "7": "七年级", "8": "八年级", "9": "九年级" };
+  const GRADE: Record<string, string> = { "6": "六年级", "7": "七年级", "8": "八年级", "9": "九年级" };
   const grades = new Map<string, number>();
   for (const b of shelf) {
     const g = GRADE[(b.book ?? "")[0]] ?? bookById(b.book ?? "").name;
@@ -36,7 +36,7 @@ export function About() {
             <span className="nowrap">一个一个点亮。</span>
           </h1>
           <p className="lede">
-            人教版初中《英语》课本「Vocabulary in Each Unit」里的 {total.toLocaleString()} 个词条（不含人名）。每个词都配课本原声和两句例句：一句课本原句，一句中考或模拟题里的句子（找不到合适原句时用改编句）。还有按单元整理的课文点读、语法和句型练习，以及河南中考真题提示。
+            人教版《英语》各册单元词表里的 {total.toLocaleString()} 个词条（不含人名），配有课本原声、词义和例句。课本页按单元整理了原声录音、课文点读和语法句型练习，初中册另有河南中考真题提示。
           </p>
           <p className="lede">用自己的名字和密码登录，学习进度自动保存到云端，换手机也能接着学。</p>
           {grades.size > 1 && (
@@ -60,7 +60,7 @@ export function About() {
           <h3 className="eyebrow">为什么记得住</h3>
           <ul className="feature-list">
             <li>
-              <b>先看见。</b>每个词都配了一幅插画，大多画的就是单词卡上例句里的场景。
+              <b>先看见。</b>词卡会显示已有的插画，帮助把词义和场景连起来。
             </li>
             <li>
               <b>再想起。</b>选义、看图补句、听音辨词、拼写，从认得走到会写。
@@ -81,7 +81,7 @@ export function About() {
           <h3 className="eyebrow">每天来一点</h3>
           <ul className="feature-list">
             <li>
-              <b>切换册数。</b>点左上角的册名，七上、七下、八上、八下、九年级随时换。
+              <b>切换册数。</b>点左上角的册名，六上、七上、七下、八上、八下、九年级随时换。
             </li>
             <li>
               <b>做完今天的任务，开宝箱。</b>右上角的宝箱图标是「我的宝库」：今日宝箱、学完一个单元的单元宝箱、连续 7 天的周宝箱，没开的可以攒着。

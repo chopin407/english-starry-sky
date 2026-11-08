@@ -17,6 +17,7 @@ export const BOOKS: Book[] = [
   { id: "8a", name: "八年级上册", short: "八上", term: "a", ready: true },
   { id: "8b", name: "八年级下册", short: "八下", term: "b", ready: true },
   { id: "9", name: "九年级", short: "九年级", term: "all", ready: true },
+  { id: "6a", name: "六年级上册", short: "六上", term: "a", ready: true },
 ];
 
 /** 中考总复习：三年内容按中考考法重新组织，只放在左上角菜单里，不进新手引导（以后单独设计） */

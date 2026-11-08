@@ -18,6 +18,7 @@ export interface Lesson {
   id: string;
   title: string;
   audio: string;
+  duration?: number;
   lines: LessonLine[];
 }
 export interface LessonsData {
@@ -28,7 +29,10 @@ export const useLessons = () => useBookData<LessonsData>("lessons");
 
 export const lessonsOf = (d: LessonsData | null, unit: string) => d?.units.find((u) => u.unit === unit)?.lessons ?? [];
 
-const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
+const fmt = (seconds: number) => {
+  const sec = Math.round(seconds);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+};
 
 /** 单元里「课文与对话」的列表 */
 export function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l: Lesson) => void }) {
@@ -43,11 +47,10 @@ export function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l:
             <span className="pt-main">
               <b>{l.title}</b>
               <small>
-                {l.lines.length} 句 · {fmt(l.lines.at(-1)?.e ?? 0)}
+                {l.lines.length ? `${l.lines.length} 句 · ` : ""}
+                {fmt(l.duration ?? l.lines.at(-1)?.e ?? 0)}
               </small>
-              <small className="lesson-first" lang="en">
-                {l.lines[0]?.t}
-              </small>
+              {l.lines[0] && <small className="lesson-first" lang="en">{l.lines[0].t}</small>}
             </span>
           </button>
         </li>
@@ -139,7 +142,9 @@ export function LessonView({ lesson, onBack }: { lesson: Lesson; onBack: () => v
     }
     stopAt.current = null;
     // 录音开头是报题号、读题目要求，整段播放从正文第一句开始
-    if (current === null || a.ended) a.currentTime = Math.max(0, (lesson.lines[0]?.s ?? 0) - 0.3);
+    if (a.ended || (lesson.duration === undefined && current === null)) {
+      a.currentTime = lesson.duration === undefined ? Math.max(0, (lesson.lines[0]?.s ?? 0) - 0.3) : 0;
+    }
     duck(true);
     void a.play().catch(() => null);
   };
@@ -167,19 +172,25 @@ export function LessonView({ lesson, onBack }: { lesson: Lesson; onBack: () => v
           </button>
         )}
       </div>
-      <p className="muted lesson-tip">点一句，听一句，跟着读。{showZh && " 中文是参考译文，不是课本原文。"}</p>
-      <ol className="lesson-lines">
-        {lesson.lines.map((l, i) => (
-          <li key={i} id={`ln-${i}`} className={current === i ? "is-on" : ""}>
-            <button onClick={() => playLine(i)}>
-              <span className="lesson-en" lang="en">
-                {l.t}
-              </span>
-              {showZh && l.zh && <span className="lesson-zh">{l.zh}</span>}
-            </button>
-          </li>
-        ))}
-      </ol>
+      <p className="muted lesson-tip">
+        {lesson.lines.length ? "点一句，听一句，跟着读。" : "点播放，听课本原声。"}
+        {lesson.lines.length > 0 && lesson.duration !== undefined && "下方是已对齐的句子，整段播放可听完整录音。"}
+        {showZh && " 中文是参考译文，不是课本原文。"}
+      </p>
+      {lesson.lines.length > 0 && (
+        <ol className="lesson-lines">
+          {lesson.lines.map((l, i) => (
+            <li key={i} id={`ln-${i}`} className={current === i ? "is-on" : ""}>
+              <button onClick={() => playLine(i)}>
+                <span className="lesson-en" lang="en">
+                  {l.t}
+                </span>
+                {showZh && l.zh && <span className="lesson-zh">{l.zh}</span>}
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
