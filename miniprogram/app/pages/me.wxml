@@ -1,0 +1,19 @@
+<view class="wrap">
+  <view class="hero">
+    <text class="eyebrow">MY GALAXY</text>
+    <text class="title">我的星空</text>
+    <text class="subtitle">学习记录保存在当前设备</text>
+  </view>
+  <view class="card">
+    <view class="label">{{book}}</view>
+    <view class="muted">已学 {{stats.seen}} / {{stats.total}} 词 · 熟记 {{stats.mastered}} 词</view>
+    <progress class="meter" percent="{{stats.percent}}" activeColor="#ffdb90" backgroundColor="#344063" border-radius="5" stroke-width="6" />
+    <view class="muted">累计学习 {{days}} 天 · 完成 {{reading}} 篇阅读</view>
+  </view>
+  <picker range="{{goals}}" bindchange="goal"><view class="card row between"><text>每日新词目标</text><text class="gold">{{goal}} 个 ▾</text></view></picker>
+  <view class="card row between" bindtap="saved" data-mode="saved"><text>我的收藏</text><text class="gold">{{saved}} ›</text></view>
+  <view class="card row between" bindtap="saved" data-mode="mistakes"><text>错词本</text><text class="gold">{{mistakes}} ›</text></view>
+  <view class="section">关于英语星空</view>
+  <view class="card muted">本小程序改编自英语星空 English Galaxy。原创内容按 CC BY-NC 4.0 授权；部分插画、美音及例句由词光 Word Atlas contributors 提供（CC BY 4.0）。教材、录音和试题版权归各权利方，仅供非营利教学与学习。</view>
+  <view class="muted center">英语星空 {{version}}</view>
+</view>

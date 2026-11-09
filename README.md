@@ -124,6 +124,10 @@ npm run dev
 npm run build   # 输出到 dist/，可以放到任何静态网站托管上
 ```
 
+### 微信小程序与双端构建
+
+`npm run build:all` 从同一份教材数据和学习逻辑构建 Web 与微信小程序。Web 输出到 `dist/`；小程序用微信开发者工具导入 `miniprogram/`。全量插画、录音的配置及统一发布命令见 [双端构建与发布](README_DEV.md#双端构建与发布)。
+
 ### 开启登录和云端同步（可选）
 
 登录、云端同步、老师页用的是[腾讯云开发](https://tcb.cloud.tencent.com/)（PostgreSQL 型环境）：

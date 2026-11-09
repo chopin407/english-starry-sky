@@ -1,0 +1,28 @@
+<view class="wrap">
+  <view class="hero">
+    <image class="hero-bg" src="/_generated/night.webp" mode="aspectFill" />
+    <view class="hero-copy">
+      <text class="eyebrow">ENGLISH GALAXY</text>
+      <text class="title">课本的词，一颗颗点亮</text>
+      <text class="subtitle">每天一点，连成你的英语星空。</text>
+      <button class="small action" bindtap="chooseBook">{{book}} ▾</button>
+    </view>
+  </view>
+  <view class="section">今天的学习</view>
+  <view class="grid">
+    <view class="card"><view class="strong gold">{{due}}</view><text class="muted">到期复习</text></view>
+    <view class="card"><view class="strong">{{fresh}}</view><text class="muted">可学新词</text></view>
+    <view class="card"><view class="strong">{{studied}}</view><text class="muted">今日已练</text></view>
+  </view>
+  <button class="primary" bindtap="start" data-mode="daily" disabled="{{!due && !fresh}}">{{due || fresh ? '开始今日学习' : '今日词卡已完成'}}</button>
+  <view class="section">专项练习</view>
+  <view class="grid">
+    <button bindtap="start" data-mode="choice">选词义</button>
+    <button bindtap="start" data-mode="spell">看义拼写</button>
+    <button bindtap="start" data-mode="audio" disabled="{{!canDictate}}">单词听写</button>
+  </view>
+  <view class="muted" wx:if="{{!canDictate}}">当前册未接入录音，仍可练习选词义和拼写。</view>
+  <view class="card row between action" bindtap="reading">
+    <view><view class="label">真题阅读馆</view><view class="muted">读原文，做原题</view></view><text class="gold">›</text>
+  </view>
+</view>

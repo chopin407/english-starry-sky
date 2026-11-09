@@ -2,14 +2,12 @@ import type { Atlas, WordRef } from "../atlas/types";
 import { MEDIA } from "../atlas/types";
 import { hashSeed, normalize, shuffle } from "../lib/text";
 import { forgetResolvedWord } from "./practiceReview";
+import { dueCardIds } from "./due";
 import { isMastered, review, Rating, type Grade } from "./srs";
 import { bumpDay, dayKey, store, type ActiveSession, type Progress, type QuizKind, type Settings, type Step } from "./store";
 
 export function dueIds(p: Progress, now = Date.now()) {
-  return Object.entries(p.cards)
-    .filter(([, c]) => c.due <= now)
-    .sort((a, b) => a[1].due - b[1].due)
-    .map(([id]) => id);
+  return dueCardIds(p.cards, now);
 }
 
 export function newToday(p: Progress) {

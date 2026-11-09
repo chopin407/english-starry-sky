@@ -1,0 +1,18 @@
+<view class="wrap" wx:if="{{lesson}}">
+  <text class="eyebrow">课文点读</text>
+  <text class="title">{{lesson.title}}</text>
+  <view class="grid">
+    <button class="primary" wx:if="{{src}}" data-index="-1" bindtap="play">{{playing === -1 ? '停止播放' : '播放整段'}}</button>
+    <button wx:if="{{lesson.lines.length}}" bindtap="toggleZh">{{showZh ? '隐藏译文' : '显示译文'}}</button>
+  </view>
+  <view wx:if="{{!src}}" class="card muted">当前未接入这段录音，可以阅读下方已有文字。</view>
+  <view wx:for="{{lesson.lines}}" wx:key="s" class="card {{playing === index ? 'active' : ''}}">
+    <view class="row between">
+      <text class="grow english">{{item.t}}</text>
+      <button wx:if="{{src && item.e > item.s}}" class="small" bindtap="play" data-index="{{index}}">{{playing === index ? '停止' : '点读'}}</button>
+    </view>
+    <view wx:if="{{showZh && item.zh}}" class="muted">{{item.zh}}</view>
+  </view>
+  <view wx:if="{{!lesson.lines.length}}" class="card muted">这一段还没有逐句文本。</view>
+</view>
+<view wx:else class="wrap muted">未找到这段课文。</view>

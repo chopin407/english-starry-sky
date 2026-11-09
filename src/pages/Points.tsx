@@ -3,10 +3,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useAtlas } from "../atlas/context";
 import { go, useLocation } from "../lib/router";
 import { cue } from "../lib/sound";
-import { normalize, shuffle } from "../lib/text";
-
-/** 比对答案时忽略大小写、多余空格和句末标点 */
-const same = (a: string, b: string) => normalize(a).replace(/[.?!,]/g, "").trim() === normalize(b).replace(/[.?!,]/g, "").trim();
+import { sameGrammarAnswer as same, shuffle } from "../lib/text";
 import { unitShort } from "../lib/unit";
 import { store } from "../store/store";
 import { useBookData } from "../lib/bookData";

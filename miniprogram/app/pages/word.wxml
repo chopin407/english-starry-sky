@@ -1,0 +1,26 @@
+<view class="wrap" wx:if="{{word}}">
+  <image wx:if="{{image}}" class="art" src="{{image}}" mode="aspectFit" binderror="imageError" />
+  <view class="card">
+    <text class="title english">{{word.w}}</text>
+    <view class="muted">{{word.ipa}}</view>
+    <view class="label space">{{word.zh}}</view>
+    <view class="tagbar">
+      <text wx:if="{{word.key}}" class="chip">重点词</text>
+      <text wx:if="{{word.p}}" class="chip">课本第 {{word.p}} 页</text>
+    </view>
+    <view class="grid">
+      <button wx:if="{{audio.uk}}" class="small" bindtap="play" data-kind="uk">播放原声</button>
+      <button wx:if="{{audio.us}}" class="small" bindtap="play" data-kind="us">播放美音</button>
+      <button class="small" bindtap="save">{{saved ? '已收藏' : '收藏'}}</button>
+    </view>
+  </view>
+  <view wx:if="{{examples.length}}" class="section">例句</view>
+  <view wx:for="{{examples}}" wx:key="en" class="card">
+    <view class="label english">{{item.en}}</view><view class="body">{{item.zh}}</view>
+    <view class="row between">
+      <text class="muted">{{item.src}}</text>
+      <button wx:if="{{audio[item.audio]}}" class="small" bindtap="play" data-kind="{{item.audio}}">播放例句</button>
+    </view>
+  </view>
+</view>
+<view wx:else class="wrap muted">未找到这个词条。</view>

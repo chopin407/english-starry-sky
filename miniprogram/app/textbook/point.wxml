@@ -1,0 +1,44 @@
+<view class="wrap" wx:if="{{point}}">
+  <text class="eyebrow">{{point.kp}}</text>
+  <text class="title">{{point.title}}</text>
+  <block wx:if="{{!started}}">
+    <view class="card action"><text class="body">{{point.explain}}</text></view>
+    <view wx:if="{{point.examples.length}}" class="section">例句</view>
+    <view wx:for="{{point.examples}}" wx:key="en" class="card"><view class="english">{{item.en}}</view><view class="muted">{{item.zh}}</view></view>
+    <button wx:if="{{total}}" class="primary action" bindtap="start">开始练习 · {{total}} 题</button>
+    <button wx:if="{{wrong}}" class="action" data-mode="wrong" bindtap="start">重练错题 · {{wrong}} 题</button>
+  </block>
+  <view wx:elif="{{done}}" class="hero action">
+    <view class="label">练习完成 ✦</view><view class="subtitle">答对 {{correctCount}} / {{count}} 题</view>
+    <button class="primary action" bindtap="intro">返回考点</button>
+  </view>
+  <view wx:else class="card action">
+    <text class="eyebrow">{{step + 1}} / {{count}}</text>
+    <view wx:if="{{q.t !== 'order'}}" class="label body">{{q.q}}</view>
+    <block wx:if="{{q.t === 'choice'}}">
+      <button wx:for="{{q.o}}" wx:key="*this" class="choice {{result && index === q.a ? 'answer' : (result && index === selected ? 'wrong' : '')}}" bindtap="choose" data-index="{{index}}">{{item}}</button>
+    </block>
+    <block wx:elif="{{q.t === 'fill'}}">
+      <input wx:if="{{!result}}" class="input" value="{{typed}}" bindinput="input" bindconfirm="submit" placeholder="填写答案" />
+      <view wx:else class="muted">你的答案：{{typed}}</view>
+      <button wx:if="{{!result}}" class="primary action" disabled="{{!typed}}" bindtap="submit">提交</button>
+    </block>
+    <block wx:else>
+      <view class="label body">把单词排成句子</view>
+      <view class="tagbar"><text wx:for="{{chosen}}" wx:key="id" class="chip">{{item.word}}</text><text wx:if="{{!chosen.length}}" class="muted">点击下方单词</text></view>
+      <view wx:if="{{!result}}" class="tagbar">
+        <button wx:for="{{tokens}}" wx:key="id" class="small" disabled="{{item.used}}" bindtap="pick" data-id="{{item.id}}">{{item.word}}</button>
+      </view>
+      <view wx:if="{{!result}}" class="grid">
+        <button disabled="{{!chosen.length}}" bindtap="undo">撤回</button>
+        <button class="primary" disabled="{{chosen.length !== tokens.length}}" bindtap="submit">提交</button>
+      </view>
+    </block>
+    <view wx:if="{{result}}" class="action">
+      <view class="{{result === 'correct' ? 'good' : 'bad'}}">{{result === 'correct' ? '答对了' : '参考答案：' + answer}}</view>
+      <text class="body">{{q.e}}</text>
+      <button class="primary action" bindtap="next">{{step + 1 === count ? '查看结果' : '下一题'}}</button>
+    </view>
+  </view>
+</view>
+<view wx:else class="wrap muted">未找到这个考点。</view>

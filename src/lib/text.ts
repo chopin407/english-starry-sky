@@ -40,6 +40,10 @@ export const normalize = (s: string) =>
     .trim()
     .toLowerCase();
 
+/** Compare grammar answers without penalizing capitalization or common punctuation. */
+export const sameGrammarAnswer = (a: string, b: string) =>
+  normalize(a).replace(/[.?!,]/g, "").trim() === normalize(b).replace(/[.?!,]/g, "").trim();
+
 export function shuffle<T>(xs: T[], seed = Math.random() * 2 ** 31): T[] {
   const out = [...xs];
   let x = Math.floor(seed) || 1;

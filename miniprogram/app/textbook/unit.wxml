@@ -1,0 +1,15 @@
+<view class="wrap">
+  <text class="eyebrow">TEXTBOOK</text>
+  <text class="title">{{title}}</text>
+  <text class="subtitle">{{subtitle}}</text>
+  <view class="section">课文与对话</view>
+  <view wx:for="{{lessons}}" wx:key="id" class="card row between" bindtap="detail" data-type="lesson" data-id="{{item.id}}">
+    <view><view class="label">{{item.title}}</view><view class="muted">{{item.count ? item.count + ' 句' : '整段录音'}}</view></view><text class="gold">›</text>
+  </view>
+  <view wx:if="{{!lessons.length}}" class="card muted">这一单元暂无课文。</view>
+  <view class="section">语法与句型</view>
+  <view wx:for="{{points}}" wx:key="id" class="card row between" bindtap="detail" data-type="point" data-id="{{item.id}}">
+    <view><view class="label">{{item.title}}</view><view class="muted">{{item.kp}} · {{item.count}} 题</view></view><text class="gold">›</text>
+  </view>
+  <view wx:if="{{!points.length}}" class="card muted">这一单元暂无考点练习。</view>
+</view>

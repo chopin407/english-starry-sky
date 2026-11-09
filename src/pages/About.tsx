@@ -2,7 +2,7 @@ import { ArrowUpRight, Heart } from "lucide-react";
 import { APP_NAME } from "../lib/unit";
 import { useAtlas } from "../atlas/context";
 import { bookById } from "../lib/books";
-import { REPO_URL, SOURCE_URL } from "../config";
+import { CUR_CUR_SOURCE_URL, REPO_URL, SOURCE_URL } from "../config";
 import { useExams } from "../ui/ExamHint";
 
 const BASE = import.meta.env.BASE_URL;
@@ -178,7 +178,10 @@ export function About() {
             词光 Word Atlas 开源项目 <ArrowUpRight size={14} />
           </a>
           <a className="link" href={SOURCE_URL} target="_blank" rel="noreferrer">
-            英语星空的源代码（GitHub） <ArrowUpRight size={14} />
+            英语星空原版的源代码（GitHub） <ArrowUpRight size={14} />
+          </a>
+          <a className="link" href={CUR_CUR_SOURCE_URL} target="_blank" rel="noreferrer">
+            英语星空（新版）的源代码（GitHub） <ArrowUpRight size={14} />
           </a>
         </section>
       </div>

@@ -1,0 +1,33 @@
+<template name="parts">
+  <block wx:for="{{pieces}}" wx:key="i">
+    <image wx:if="{{item.image}}" src="{{item.image}}" mode="widthFix" style="display:block;width:100%;margin:12rpx 0" />
+    <text wx:else>{{item.text}}</text>
+  </block>
+</template>
+<view class="wrap" wx:if="{{title}}">
+  <text class="eyebrow">{{source}}</text>
+  <text class="title english">{{title}}</text>
+  <button class="small action" bindtap="toggleBody">{{showBody ? '收起原文' : '展开原文'}}</button>
+  <view class="card action" wx:if="{{showBody}}">
+    <view wx:for="{{paragraphs}}" wx:key="id" class="body english"><template is="parts" data="{{pieces: item.pieces}}" /></view>
+  </view>
+  <view wx:if="{{missingImages}}" class="card muted action">这篇文章需要试题配图才能作答。可返回目录选择其他文章。</view>
+  <view wx:elif="{{done}}" class="hero action">
+    <view class="label">阅读完成 ✦</view><view class="subtitle">答对 {{correct}} / {{total}} 题</view>
+    <button wx:if="{{total}}" class="primary action" bindtap="restart">再做一次</button>
+  </view>
+  <view wx:else class="card action">
+    <text class="eyebrow">第 {{label}} 题 · {{step + 1}} / {{total}}</text>
+    <view class="body english"><template is="parts" data="{{pieces: stem}}" /></view>
+    <view wx:for="{{options}}" wx:key="id" class="card choice {{picked && item.id === answer ? 'answer' : (picked === item.id ? 'wrong' : '')}}" bindtap="pick" data-id="{{item.id}}">
+      <text class="gold">{{item.id}}. </text><template is="parts" data="{{pieces: item.parts}}" />
+    </view>
+    <view wx:if="{{picked}}" class="action">
+      <view class="{{picked === answer ? 'good' : 'bad'}}">{{picked === answer ? '答对了' : '正确选项：' + answer}}</view>
+      <text wx:if="{{evidence}}" class="body muted">原文依据：{{evidence}}</text>
+      <text wx:if="{{why}}" class="body">{{why}}</text>
+      <button class="primary action" bindtap="next">{{step + 1 === total ? '查看结果' : '下一题'}}</button>
+    </view>
+  </view>
+</view>
+<view wx:else class="wrap muted">未找到这篇文章。</view>

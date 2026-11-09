@@ -1,0 +1,27 @@
+{
+  "pages": ["pages/today", "pages/atlas", "pages/books", "pages/me", "pages/word", "pages/study", "pages/saved"],
+  "subPackages": [
+    { "root": "textbook", "pages": ["unit", "lesson", "point", "essay"] },
+    { "root": "reading", "pages": ["index", "article"] }
+  ],
+  "window": {
+    "navigationBarTitleText": "英语星空",
+    "navigationBarBackgroundColor": "#121831",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#121831"
+  },
+  "tabBar": {
+    "color": "#a8b0cd",
+    "selectedColor": "#ffdb90",
+    "backgroundColor": "#171e37",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/today", "text": "今日" },
+      { "pagePath": "pages/atlas", "text": "图鉴" },
+      { "pagePath": "pages/books", "text": "课本" },
+      { "pagePath": "pages/me", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

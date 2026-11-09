@@ -1,0 +1,34 @@
+<view class="wrap">
+  <text class="eyebrow">WRITING</text>
+  <block wx:if="{{!essay}}">
+    <text class="title">写作范文</text>
+    <view class="card action" wx:for="{{essays}}" wx:key="id" bindtap="open" data-index="{{index}}">
+      <view class="label">{{item.title}}</view><view class="muted">{{item.topic}} · {{item.summary}}</view>
+    </view>
+    <view wx:if="{{!essays.length}}" class="card muted">本册暂无范文。</view>
+  </block>
+  <block wx:else>
+    <text class="title">{{essay.title}}</text>
+    <text class="subtitle english">{{essay.englishTitle}}</text>
+    <view class="grid">
+      <button wx:for="{{essay.versions}}" wx:key="label" wx:for-index="v" data-index="{{v}}" bindtap="version" class="{{v === index ? 'active' : ''}}">{{item.label}}</button>
+    </view>
+    <view class="card"><text class="body english" wx:for="{{essay.versions[index].paragraphs}}" wx:key="*this">{{item}}</text></view>
+    <view wx:if="{{essay.outline.length}}" class="section">写作思路</view>
+    <view wx:for="{{essay.outline}}" wx:key="*this" class="card">{{item}}</view>
+    <view wx:if="{{essay.grammar.length}}" class="section">语法与句型</view>
+    <view wx:for="{{essay.grammar}}" wx:key="title" class="card">
+      <view class="label">{{item.title}}</view>
+      <view class="body english">{{item.example}}</view>
+      <view class="muted">{{item.translation}}</view>
+      <view>{{item.explanation}}</view>
+      <view class="gold">{{item.tip}}</view>
+    </view>
+    <view wx:if="{{essay.vocabulary.length}}" class="section">词汇积累</view>
+    <view wx:for="{{essay.vocabulary}}" wx:key="term" class="card">
+      <view class="label english">{{item.term}}</view>
+      <view>{{item.meaning}}</view><view class="muted">{{item.usage}}</view>
+    </view>
+    <button class="action" bindtap="list">返回范文目录</button>
+  </block>
+</view>

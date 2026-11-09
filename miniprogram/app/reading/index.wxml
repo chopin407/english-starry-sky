@@ -1,0 +1,20 @@
+<view class="wrap">
+  <view class="hero">
+    <text class="eyebrow">READING ROOM</text>
+    <text class="title">真题阅读馆</text>
+    <text class="subtitle">读原文，做原题，看看答案从哪里来。</text>
+  </view>
+  <input class="input" placeholder="搜文章标题、年份或试卷" bindinput="search" />
+  <view class="section">{{total}} 篇文章</view>
+  <view wx:for="{{articles}}" wx:key="id" class="card row between" bindtap="article" data-id="{{item.id}}">
+    <view class="grow">
+      <view class="label english">{{item.title}}</view>
+      <view class="muted">{{item.src}} · {{item.words}} 词</view>
+      <view wx:if="{{item.missingImages}}" class="muted">作答需要试题配图</view>
+      <view wx:if="{{item.result}}" class="good">上次答对 {{item.result.correct}} / {{item.result.total}}</view>
+    </view>
+    <text class="gold">›</text>
+  </view>
+  <view wx:if="{{!total}}" class="card muted">没有找到匹配的文章。</view>
+  <view wx:if="{{total > articles.length}}" class="muted center">继续上滑查看更多</view>
+</view>

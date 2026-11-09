@@ -1,0 +1,20 @@
+<view class="wrap">
+  <view class="hero">
+    <text class="eyebrow">TEXTBOOK</text>
+    <text class="title">跟着课本学</text>
+    <text class="subtitle">课文点读、语法与句型练习</text>
+    <picker class="action" range="{{books}}" range-key="name" value="{{bookIndex}}" bindchange="choose">
+      <view class="chip">{{book.name}} ▾</view>
+    </picker>
+  </view>
+  <button wx:if="{{book.essays}}" class="action" bindtap="essays">写作范文 · {{book.essays}} 篇</button>
+  <view class="section">单元目录</view>
+  <view wx:for="{{book.units}}" wx:key="id" class="card row between" bindtap="unit" data-id="{{item.id}}">
+    <view class="grow">
+      <view class="label">{{item.title}}</view>
+      <view class="muted" wx:if="{{item.subtitle}}">{{item.subtitle}}</view>
+      <view class="muted">{{item.count}} 词 · {{item.lessons || 0}} 段课文 · {{item.points || 0}} 个考点</view>
+    </view>
+    <text class="gold">›</text>
+  </view>
+</view>

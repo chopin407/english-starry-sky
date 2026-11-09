@@ -1,0 +1,52 @@
+<view class="wrap">
+  <text class="eyebrow">{{title}}</text>
+  <view wx:if="{{done}}" class="hero action">
+    <text class="title">{{total ? '这一组完成了 ✦' : '暂无可练习的词'}}</text>
+    <text wx:if="{{total && mode === 'daily'}}" class="subtitle">已安排 {{total}} 张词卡的下次复习。</text>
+    <text wx:elif="{{total}}" class="subtitle">答对 {{correctCount}} / {{total}} 题，可在「我的」查看错词。</text>
+    <button class="primary action" bindtap="leave">返回</button>
+  </view>
+  <block wx:else>
+    <view class="row between action"><text class="muted">{{owner}}</text><text class="gold">{{index + 1}} / {{total}}</text></view>
+    <progress class="meter" percent="{{(index + 1) * 100 / total}}" activeColor="#ffdb90" backgroundColor="#344063" border-radius="5" stroke-width="5" />
+    <view class="card">
+      <block wx:if="{{mode === 'daily'}}">
+        <text class="eyebrow">{{newCard ? '初见新词' : '到期复习'}}</text>
+        <text class="title english">{{word.w}}</text>
+        <view class="muted">{{word.ipa}}</view>
+        <button wx:if="{{audio}}" class="small action" bindtap="play">播放发音</button>
+        <view wx:if="{{revealed || newCard}}" class="action">
+          <image wx:if="{{image}}" class="art" src="{{image}}" mode="aspectFit" binderror="imageError" />
+          <view class="label">{{word.zh}}</view>
+          <view wx:for="{{word.ex}}" wx:key="en" class="body">
+            <text class="english">{{item.en}}</text><view class="muted">{{item.zh}}</view>
+          </view>
+        </view>
+        <button wx:if="{{!revealed}}" class="primary action" bindtap="reveal">{{newCard ? '开始记忆评分' : '查看释义'}}</button>
+      </block>
+      <block wx:elif="{{mode === 'choice'}}">
+        <view class="muted">选出正确的中文释义</view>
+        <text class="title english">{{word.w}}</text>
+        <button wx:for="{{options}}" wx:key="*this" class="choice {{result && item === word.zh ? 'answer' : ''}}" bindtap="choose" data-index="{{index}}">{{item}}</button>
+      </block>
+      <block wx:else>
+        <button wx:if="{{mode === 'audio'}}" class="primary space" bindtap="play">播放录音</button>
+        <view wx:else class="label space">{{word.zh}}</view>
+        <input wx:if="{{!result}}" class="input" value="{{value}}" bindinput="input" bindconfirm="submit" placeholder="输入英文答案" confirm-type="done" />
+        <view wx:else class="muted">你的答案：{{value}}</view>
+        <button wx:if="{{!result}}" class="primary action" bindtap="submit" disabled="{{!value}}">提交</button>
+      </block>
+    </view>
+    <view wx:if="{{mode === 'daily' && revealed}}">
+      <view class="muted center">这次记得怎么样？</view>
+      <view class="grid">
+        <button wx:for="{{ratings}}" wx:key="id" class="small" bindtap="rate" data-id="{{item.id}}"><view>{{item.label}}</view><view class="muted">{{item.interval}}</view></button>
+      </view>
+    </view>
+    <view wx:if="{{result}}" class="card {{result === 'correct' ? 'answer' : 'wrong'}}">
+      <view class="label {{result === 'correct' ? 'good' : 'bad'}}">{{result === 'correct' ? '答对了' : '已加入错词本'}}</view>
+      <view>{{word.w}} · {{word.zh}}</view>
+      <button class="primary action" bindtap="next">{{index + 1 === total ? '查看结果' : '下一题'}}</button>
+    </view>
+  </block>
+</view>

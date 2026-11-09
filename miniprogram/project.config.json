@@ -1,0 +1,14 @@
+{
+  "appid": "touristappid",
+  "projectname": "english-starry-sky",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "app/",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "minified": true,
+    "ignoreDevUnusedFiles": false,
+    "ignoreUploadUnusedFiles": false,
+    "urlCheck": true
+  }
+}

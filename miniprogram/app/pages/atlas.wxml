@@ -1,0 +1,17 @@
+<view class="wrap">
+  <text class="eyebrow">{{name}}</text>
+  <text class="title">单词图鉴</text>
+  <input class="input action" value="{{q}}" placeholder="搜英文或中文释义" bindinput="search" />
+  <view class="row between space action">
+    <picker range="{{units}}" range-key="title" value="{{unitIndex}}" bindchange="filter">
+      <view class="chip">{{units[unitIndex].title}} ▾</view>
+    </picker>
+    <text class="muted">{{total}} 个词条</text>
+  </view>
+  <view wx:for="{{words}}" wx:key="id" class="card row between" bindtap="detail" data-id="{{item.id}}">
+    <view class="grow"><view class="label english">{{item.w}}</view><view class="muted">{{item.zh}}</view></view>
+    <text class="{{item.seen ? 'gold' : 'muted'}}">{{item.seen ? '✦' : (item.key ? '重点' : '›')}}</text>
+  </view>
+  <view wx:if="{{!total}}" class="card muted">没有找到匹配的词，试试其他关键词。</view>
+  <view wx:if="{{total > words.length}}" class="muted center">继续上滑查看更多</view>
+</view>

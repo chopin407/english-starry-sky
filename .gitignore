@@ -10,3 +10,5 @@ __pycache__
 scripts/build/
 pipeline/build/*
 !pipeline/build/*.py
+/miniprogram/project.private.config.json
+/miniprogram/app/**/_generated/

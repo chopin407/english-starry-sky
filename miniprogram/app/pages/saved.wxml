@@ -1,0 +1,9 @@
+<view class="wrap">
+  <text class="title">{{title}}</text>
+  <button wx:if="{{mistakes && words.length}}" class="primary space action" bindtap="retry">重练错词</button>
+  <view wx:for="{{words}}" wx:key="id" class="card row between" bindtap="detail" data-book="{{item.book}}" data-id="{{item.id}}">
+    <view class="grow"><view class="label english">{{item.w}}</view><view class="muted">{{item.zh}}</view></view>
+    <text class="chip">{{item.name}}</text>
+  </view>
+  <view wx:if="{{!words.length}}" class="card muted action">这里还没有词条。</view>
+</view>

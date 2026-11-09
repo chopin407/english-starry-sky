@@ -4,7 +4,7 @@
 
 ## 1. 源代码
 
-`src/`、`scripts/`、`pipeline/`、`cloud/` 等源代码采用 [MIT License](LICENSE)。界面和交互基于 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。依赖包保留各自授权；Fraunces 字体为 SIL Open Font License 1.1。
+`src/`、`miniprogram/`、`scripts/`、`pipeline/`、`cloud/` 等源代码采用 [MIT License](LICENSE)。界面和交互基于 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。依赖包保留各自授权；Fraunces 字体为 SIL Open Font License 1.1。小程序构建产物中的教材、录音、配图和题目沿用下文对应的内容授权。
 
 ## 2. 本项目自己做的内容：CC BY-NC 4.0
 

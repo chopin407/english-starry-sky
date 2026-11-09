@@ -11,6 +11,44 @@ npm run dev
 
 电脑浏览器打开 http://localhost:5191 ；手机连同一个网络，打开 `http://电脑的地址:5191`。
 
+## 双端构建与发布
+
+```sh
+npm ci
+npm run build:all           # 跑两端测试；生成 dist/ 和可导入的 miniprogram/
+npm run build:mini          # 只生成小程序
+npm run release -- --help
+```
+
+在微信开发者工具中导入仓库的 `miniprogram/`，选择测试号或填入自己的 AppID，点击编译。初始选中七年级上册，前六个词条、第一段课文和第一篇阅读题带有本地示例素材。七册词汇、课文文字、考点题、现有范文和阅读题数据均随包提供。课本和阅读分包首次打开时由微信加载。小程序当前使用本机学习记录，网页账号、老师页和奖励玩法尚未接入。
+
+更新教材时继续改 `public/atlas/`、`public/data/` 或 `src/data/essays/` 的源文件；小程序构建会自动生成 `_generated/`，不要直接编辑产物。两端共用册数配置、FSRS 调度、到期排序、听写和语法判分，页面分别由 React 与原生 WXML 实现。统一构建从 `package.json` 读取版本号，并给两个产物写入同一个构建号。小程序包大小检查使用每包 2 MiB 的项目预算。
+
+### 全量图片和录音
+
+用现有 Web 站点或同一批 `public/` 资源的 HTTPS 托管地址。该地址下应能直接打开 `atlas/index.json`、`lessons/7a/starter-unit-1-a-2c.mp3` 等文件，课文录音服务器应支持分段请求。请把资源域名配置到小程序的 [服务器域名设置](https://intl.cloud.tencent.com/zh/document/product/1219/61745?lang=zh)，并用真机验证词卡发音、课文点读和试题配图。
+
+```powershell
+$env:MINIPROGRAM_MEDIA_BASE = 'https://english.example.com'
+npm run build:all
+```
+
+### 从同一构建部署两端
+
+首次配置时，将上传密钥放在仓库外，在 [微信公众平台配置代码上传密钥和 IP 白名单](https://github.com/wechat-miniprogram/miniprogram-ci-dist#readme)，并在本机安装发布工具。Cloudflare Web 发布使用仓库现有的 `wrangler.jsonc`；可先用 Wrangler 登录，CI 可使用相应的 Cloudflare 凭据。
+
+```powershell
+npm install --no-save --package-lock=false miniprogram-ci wrangler
+$env:MINIPROGRAM_APPID = '你的真实 AppID'
+$env:MINIPROGRAM_PRIVATE_KEY_PATH = 'C:\密钥目录\private.wx....key'
+$env:MINIPROGRAM_MEDIA_BASE = 'https://english.example.com'
+npm run release -- --publish --desc '本次更新说明'
+```
+
+命令先完成所选端的构建和测试，再上传微信小程序开发版本、部署 Web。小程序正式上线需在微信公众平台提交审核并发布。两个平台分别执行；如果一端成功、另一端失败，命令会显示已完成的步骤，可用 `--target=web` 或 `--target=mini` 单独重试。上线前请核对 [教材和试题授权](CONTENT_LICENSE.md)。
+
+若 Web 使用下文的局域网发布方式，运行 `npm run release -- --publish --web=lan`。可用 `LAN_SSH_TARGET`、`LAN_REMOTE_DIR`、`LAN_PORT` 覆盖现有默认值，或用 `LAN_INCREMENTAL=1` 启用增量部署。省略 `--publish` 可只构建局域网发布包和小程序。局域网 Web 如需同时给手机上的小程序提供媒体，仍需单独配置可访问的 HTTPS 资源地址。
+
 ## 发布到局域网
 
 在项目根目录打开 PowerShell。本机需要 Node.js 20+、Python 3.9+ 和 OpenSSH（`ssh`、`scp`）。首次构建先运行 `npm ci`。
