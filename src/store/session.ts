@@ -1,6 +1,7 @@
 import type { Atlas, WordRef } from "../atlas/types";
 import { MEDIA } from "../atlas/types";
 import { hashSeed, normalize, shuffle } from "../lib/text";
+import { forgetResolvedWord } from "./practiceReview";
 import { isMastered, review, Rating, type Grade } from "./srs";
 import { bumpDay, dayKey, store, type ActiveSession, type Progress, type QuizKind, type Settings, type Step } from "./store";
 
@@ -177,6 +178,7 @@ export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: b
         updated = { ...updated, steps };
       }
     }
+    if (correct) next = { ...next, mistakes: forgetResolvedWord(next.mistakes, next.practiceReviews, step.id) };
     return withSession(atlas, next, updated);
   });
 }

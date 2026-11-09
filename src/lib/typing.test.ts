@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { clean, dictationWordForms, gradeDictation, same, typingDelta, typingMetrics } from "./typing";
+import { clean, dictationWordForms, gradeDictation, same, SPELL_GAP, spellSlotEdit, typingDelta, typingMetrics } from "./typing";
+
+test("tapping a spelling cell selects the letter or creates blanks up to that cell", () => {
+  assert.deepEqual(spellSlotEdit("hello wurld", ["hello", "world"], 1, 1), { value: "hello wurld", start: 7, end: 8 });
+  const value = `he${SPELL_GAP.repeat(3)} ${SPELL_GAP.repeat(2)}`;
+  assert.deepEqual(spellSlotEdit("he", ["hello", "world"], 1, 2), { value, start: value.length, end: value.length });
+  assert.deepEqual(spellSlotEdit("a🌟 c", ["ab", "cd"], 0, 1), { value: "a🌟 c", start: 1, end: 3 });
+});
 
 test("dictation normalizes keyboard typography and marks case and punctuation without lowering the score", () => {
   assert.deepEqual(gradeDictation("  It’s   fine！  ", "It's fine!", true), { correct: true });

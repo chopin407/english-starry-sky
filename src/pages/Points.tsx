@@ -53,6 +53,7 @@ interface Qa {
   last: boolean;
   kp: string;
   at: number;
+  dismissed?: true;
 }
 const KEY = "qishang:qa";
 let qa: Record<string, Qa> = (() => {
@@ -63,6 +64,7 @@ let qa: Record<string, Qa> = (() => {
   }
 })();
 const subs = new Set<() => void>();
+const isWrong = (item?: Qa) => !!item && !item.last && !item.dismissed;
 function record(key: string, kp: string, ok: boolean) {
   const r = qa[key] ?? { n: 0, ok: 0, last: false, kp, at: 0 };
   qa = { ...qa, [key]: { n: r.n + 1, ok: r.ok + (ok ? 1 : 0), last: ok, kp, at: Date.now() } };
@@ -113,6 +115,7 @@ export interface Item {
   q: Q;
 }
 const itemsOf = (p: Point): Item[] => p.questions.map((q, i) => ({ key: qKey(p, i), point: p, q }));
+const pointAnswer = (q: Q) => q.t === "choice" ? `${String.fromCharCode(65 + q.a)}. ${q.o[q.a]}` : q.t === "fill" ? q.a[0] : q.a;
 
 function stat(p: Point, rec: Record<string, Qa>) {
   let done = 0,
@@ -255,21 +258,45 @@ function PointsHome({
 
 /* ---------- 考点错题：放在练习页，课本页只管学 ---------- */
 
-export function WrongPanel({ onPractice }: { onPractice: (items: Item[], title: string) => void }) {
+export function WrongPanel({ onPractice, category, onCategory, wordCount, words }: {
+  onPractice: (items: Item[], title: string) => void;
+  category: "words" | "points";
+  onCategory: (category: "words" | "points") => void;
+  wordCount: number;
+  words: React.ReactNode;
+}) {
   const d = usePoints();
   const rec = useQa();
-  const wrong = useMemo(() => (d ? d.units.flatMap((u) => u.points).flatMap(itemsOf).filter((it) => rec[it.key] && !rec[it.key].last) : []), [d, rec]);
+  const wrong = useMemo(() => (d ? d.units.flatMap((u) => u.points).flatMap(itemsOf).filter((it) => isWrong(rec[it.key])) : []), [d, rec]);
   const weak = useMemo(() => {
     const m = new Map<string, number>();
     wrong.forEach((it) => m.set(kpOf(it.point, it.q), (m.get(kpOf(it.point, it.q)) ?? 0) + 1));
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   }, [wrong]);
-  if (!d) return null;
   return (
-    <section className={`mode-card wrong-card ${wrong.length ? "is-on" : ""}`}>
-      <BookX size={22} strokeWidth={1.7} />
-      <b>考点错题</b>
-      <small>{wrong.length ? `课本考点练习里还有 ${wrong.length} 道题没做对，再做一遍。` : "课本考点练习里做错的题会出现在这里，重新做对就会移出。"}</small>
+    <section className="panel wrong-card" aria-labelledby="wrong-book-title">
+      <h2 id="wrong-book-title"><BookX size={20} aria-hidden="true" /> 错题本</h2>
+      <div className="segmented segmented-wide">
+        <button className={category === "words" ? "is-on" : ""} aria-pressed={category === "words"} onClick={() => onCategory("words")}>错词 {wordCount}</button>
+        <button className={category === "points" ? "is-on" : ""} aria-pressed={category === "points"} onClick={() => onCategory("points")}>考点错题 {wrong.length}</button>
+      </div>
+      {category === "words" ? words : <>
+      <p className="muted">本册考点错题重新做对后自动移出，也可以手动移除。</p>
+      {wrong.length > 0 && (
+        <ul className="wrong-list" aria-label="考点错题清单">
+          {wrong.map(({ key, point, q }) => (
+            <li key={key}>
+              <details>
+                <summary><span lang="en">{q.t === "order" ? q.w.join(" / ") : q.q}</span></summary>
+                <p>{point.title}</p>
+                <p>答案 <span lang="en">{pointAnswer(q)}</span></p>
+                <p>{q.e}</p>
+              </details>
+              <button className="btn btn-ghost btn-sm" aria-label={`移除考点错题 ${point.title}`} onClick={() => importQa({ ...qa, [key]: { ...qa[key], dismissed: true } })}>移除</button>
+            </li>
+          ))}
+        </ul>
+      )}
       {/* 错题只在一个考点时，按考点练和「重练错题」是一回事，不再单独列出 */}
       {weak.length > 1 && (
         <div className="chips">
@@ -281,8 +308,9 @@ export function WrongPanel({ onPractice }: { onPractice: (items: Item[], title: 
         </div>
       )}
       <button className="btn btn-primary" onClick={() => onPractice(shuffle(wrong), "错题重练")} disabled={!wrong.length}>
-        <RotateCcw size={16} /> {wrong.length ? `重练 ${wrong.length} 题` : "暂无错题"}
+        <RotateCcw size={16} /> {wrong.length ? `重练 ${wrong.length} 题` : "本册暂无考点错题"}
       </button>
+      </>}
     </section>
   );
 }
@@ -290,7 +318,7 @@ export function WrongPanel({ onPractice }: { onPractice: (items: Item[], title: 
 function PointDetail({ point, onBack, onPractice }: { point: Point; onBack: () => void; onPractice: (items: Item[]) => void }) {
   const rec = useQa();
   const items = itemsOf(point);
-  const wrong = items.filter((it) => rec[it.key] && !rec[it.key].last);
+  const wrong = items.filter((it) => isWrong(rec[it.key]));
   return (
     <div className="page points pt-detail">
       <button className="btn btn-ghost btn-sm pt-back" onClick={onBack}>
@@ -404,7 +432,7 @@ function QuizCard({ item, onAnswer, onNext }: { item: Item; onAnswer: (ok: boole
     if (sentenceUrl && store.get().settings.autoplay) window.setTimeout(() => void play(sentenceUrl, q.s!, "uk"), 450);
   };
   const label = q.t === "choice" ? "单项选择" : q.t === "fill" ? "填空" : "连词成句";
-  const answer = q.t === "choice" ? `${String.fromCharCode(65 + q.a)}. ${q.o[q.a]}` : q.t === "fill" ? q.a[0] : q.a;
+  const answer = pointAnswer(q);
 
   return (
     <section className="pt-card">

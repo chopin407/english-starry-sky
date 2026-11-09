@@ -2667,7 +2667,7 @@ code {
 .spell {
   display: grid;
   gap: 18px;
-  margin-bottom: 24px;
+  margin-bottom: calc(24px + var(--spell-occlusion, 0px));
 }
 .spell-entry {
   position: relative;
@@ -2694,6 +2694,9 @@ code {
   background: var(--card);
   display: grid;
   place-items: center;
+  cursor: text;
+  user-select: none;
+  touch-action: manipulation;
   font: 600 clamp(20px, 4.6vw, 28px) var(--serif);
   transition: border-color 0.15s, transform 0.25s var(--spring), background-color 0.2s;
 }
@@ -2716,11 +2719,14 @@ code {
 }
 .spell-input {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 42px;
   opacity: 0;
-  cursor: text;
+  pointer-events: none;
+  padding: 0;
+  border: 0;
   font-size: 16px;
 }
 .spell-actions {
@@ -2980,7 +2986,7 @@ code {
 }
 @media (min-width: 900px) {
   .practice-grid {
-    grid-template-columns: 1.4fr 1fr;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     gap: 20px;
   }
 }
@@ -2992,28 +2998,71 @@ code {
 }
 @media (min-width: 1100px) {
   .practice-grid {
-    grid-template-columns: 1.4fr 0.8fr 1fr;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 1fr);
   }
 }
-/* 考点错题：和模式卡片同一种样子，放在模式和留声机中间 */
-.mode-card.wrong-card {
+/* 错题本 */
+.wrong-card {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 10px;
-  padding: 22px 20px;
+  min-width: 0;
 }
-.practice-grid .wrong-card small {
-  display: block;
-  font-size: 13.5px;
+.wrong-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
 }
-.wrong-card .chips {
-  margin-top: 4px;
-}
-.mode-card.wrong-card .btn {
-  align-self: stretch;
+.wrong-card > .btn {
   justify-content: center;
   margin-top: auto;
+}
+.wrong-list {
+  margin: 0;
+  padding: 0;
+  max-height: min(320px, 45vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+.wrong-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+.wrong-list li > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wrong-list li > .btn {
+  flex: none;
+}
+.wrong-word {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 5px;
+}
+.wrong-word b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.wrong-word small,
+.wrong-list details p {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.wrong-list details summary {
+  cursor: pointer;
+  padding: 6px 0;
+}
+.wrong-list details p {
+  margin: 4px 0;
 }
 .mode-cards {
   display: grid;
@@ -4926,6 +4975,11 @@ a:hover .mark-needle,
   gap: 18px;
   text-align: center;
 }
+.paper-prompt {
+  display: grid;
+  gap: 14px;
+  align-items: center;
+}
 .paper-tip {
   color: var(--ink-3);
   font-size: 14px;
@@ -4945,7 +4999,7 @@ a:hover .mark-needle,
   flex-wrap: wrap;
 }
 .paper-stage .spell {
-  margin: 10px 0 0;
+  margin: 10px 0 var(--spell-occlusion, 0px);
   min-width: 0;
 }
 .paper-next {
@@ -5053,6 +5107,53 @@ a:hover .mark-needle,
 .paper-zh-small {
   color: var(--ink-3);
   margin: 0;
+}
+@media (orientation: landscape) and (min-width: 760px) {
+  .page.paper {
+    padding-top: 14px;
+  }
+  .paper .typing-top {
+    margin-bottom: 12px;
+  }
+  .paper-stage {
+    max-width: 1000px;
+    gap: 12px;
+  }
+  .paper-prompt {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 18px;
+  }
+  .paper-prompt .paper-tip {
+    flex-basis: 100%;
+  }
+  .paper-cue {
+    display: flex;
+    align-items: center;
+  }
+  .paper-cue .illo {
+    width: clamp(76px, 13vh, 128px);
+    border-radius: 16px;
+  }
+  .paper-zh {
+    font-size: 21px;
+  }
+  .paper-stage .spell {
+    margin-top: 2px;
+    gap: 10px;
+  }
+  .paper .spell.is-long .slots {
+    gap: 7px 14px;
+  }
+  .paper .spell.is-long .slot-group {
+    gap: 4px;
+  }
+  .paper .spell.is-long .slot {
+    width: clamp(23px, 2.7vw, 34px);
+    height: 40px;
+    font-size: 20px;
+  }
 }
 /* 手机上三张模式卡片较窄，名字不换行 */
 @media (max-width: 559px) {

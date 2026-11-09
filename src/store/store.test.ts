@@ -3,7 +3,7 @@ import { test } from "node:test";
 import type { Atlas, WordRef } from "../atlas/types";
 import { sessionFor, withSession } from "./session";
 import { emptyProgress, sanitizeProgress, sanitizeSettings, type ActiveSession } from "./store";
-import { practiceKey, updatePracticeReview } from "./practiceReview";
+import { forgetResolvedWord, practiceKey, removeWordMistake, updatePracticeReview } from "./practiceReview";
 
 const card = { due: 1, s: 2, d: 5, el: 0, sd: 1, ls: 0, reps: 1, lapses: 0, st: 2, seen: 1 };
 
@@ -91,4 +91,18 @@ test("dictation mistakes survive backups and only advance when a review is due",
   }
   reviews = updatePracticeReview(reviews, prompt, true, reviews[key].due);
   assert.deepEqual(reviews, { [practiceKey(sentence)]: both[practiceKey(sentence)] });
+});
+test("removing a wrong word cancels its pending reviews across modes and books", () => {
+  const word = { id: "hello", book: "7a", mode: "word" } as const;
+  const sentence = { id: "hello", book: "7b", mode: "sentence" } as const;
+  const other = { ...word, id: "world" };
+  let reviews = updatePracticeReview({}, word, false, 0);
+  reviews = updatePracticeReview(reviews, sentence, false, 0);
+  reviews = updatePracticeReview(reviews, other, false, 0);
+  const mistakes = ["hello", "world"];
+  assert.equal(forgetResolvedWord(mistakes, reviews, "hello"), mistakes);
+  const removed = removeWordMistake(mistakes, reviews, "hello");
+  assert.deepEqual(removed.mistakes, ["world"]);
+  assert.deepEqual(Object.keys(removed.practiceReviews), [practiceKey(other)]);
+  assert.deepEqual(forgetResolvedWord(mistakes, removed.practiceReviews, "hello"), ["world"]);
 });

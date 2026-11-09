@@ -3,10 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { prefetch, useAtlas } from "../atlas/context";
 import { MEDIA, type Entry } from "../atlas/types";
 import { play, stopAudio } from "../lib/audio";
+import { openWord } from "../lib/router";
 import { cue } from "../lib/sound";
 import { hashSeed, shuffle } from "../lib/text";
 import { dictationWordForms, gradeDictation, type DictationGrade } from "../lib/typing";
-import { practiceKey, updatePracticeReview, type PracticeMode, type PracticePrompt } from "../store/practiceReview";
+import { forgetResolvedWord, practiceKey, removeWordMistake, updatePracticeReview, type PracticeMode, type PracticePrompt } from "../store/practiceReview";
 import { formatInterval } from "../store/srs";
 import { store, useStore } from "../store/store";
 import { AmbiencePicker } from "../ui/Ambience";
@@ -120,6 +121,7 @@ export function Practice() {
   const progress = useStore((s) => s.progress);
   const startLevel = useStore((s) => s.settings.startLevel);
   const [mode, setMode] = useState<PracticeMode>("word");
+  const [wrongCategory, setWrongCategory] = useState<"words" | "points">("words");
   const [source, setSource] = useState<Source>("path");
   const [ranges, setRanges] = useState<Record<string, [number, number]>>({});
   const book = atlas.book ?? "7a";
@@ -143,6 +145,14 @@ export function Practice() {
     .sort((a, b) => a.due - b.due);
   const due = reviews.filter((item) => item.due <= now);
   const nextDue = reviews[due.length]?.due;
+  const mistakeIds = useMemo(
+    () => [...new Set([...progress.mistakes, ...Object.values(progress.practiceReviews).map((item) => item.id)])].filter((id) => atlas.byId.has(id)),
+    [atlas, progress.mistakes, progress.practiceReviews],
+  );
+  const supportsMode = (id: string) => {
+    const w = atlas.byId.get(id);
+    return !!w && (mode === "word" || (w.media & MEDIA.ex) > 0 || !!atlas.peek(id)?.ex.length);
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -169,16 +179,13 @@ export function Practice() {
       source === "recent"
         ? learned
         : source === "mistakes"
-          ? progress.mistakes
+          ? mistakeIds
           : source === "saved"
             ? progress.bookmarks
             : atlas.words.filter((w) => w.cefr >= range[0] && w.cefr <= range[1]).map((w) => w.id);
     // 短句、中文听写只算有例句的词：显示的就是实际能出的句子数，抽题也不会抽到空的
-    return ids.filter((id) => {
-      const w = atlas.byId.get(id);
-      return !!w && (mode === "word" || (w.media & MEDIA.ex) > 0 || !!atlas.peek(id)?.ex.length);
-    });
-  }, [atlas, progress.cards, progress.mistakes, progress.bookmarks, source, range[0], range[1], mode]); // eslint-disable-line react-hooks/exhaustive-deps
+    return ids.filter(supportsMode);
+  }, [atlas, progress.cards, mistakeIds, progress.bookmarks, source, range[0], range[1], mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const start = async (prompts: PracticePrompt[], review: boolean) => {
     if (loading || !prompts.length) return;
@@ -197,15 +204,15 @@ export function Practice() {
     else setLoadError(true);
   };
 
-  const startRegular = () => {
-    // 最近学过：从最近的 60 个里抽，练的是刚学的；其他来源：整个来源里随机抽（原来只从前 60 个抽，学习路线总是抽到第一单元）
-    const ids = shuffle(source === "recent" ? pool.slice(0, 60) : pool, hashSeed(String(Date.now()))).slice(0, 10);
+  const startFrom = (words: string[], practiceMode: PracticeMode) => {
+    const ids = shuffle(words, hashSeed(String(Date.now()))).slice(0, 10);
     const prompts = ids.map((id) => {
       const owner = atlas.words.some((w) => w.id === id) ? atlas : atlas.shelf?.find((a) => a.byId.has(id)) ?? atlas;
-      return { id, mode, book: owner.book ?? "" };
+      return { id, mode: practiceMode, book: owner.book ?? "" };
     });
     void start(prompts, false);
   };
+  const startRegular = () => startFrom(source === "recent" ? pool.slice(0, 60) : pool, mode);
   const startReview = () => void start(due.slice(0, 10), true);
 
   if (quiz) return <Quiz items={quiz.items} title={quiz.title} onExit={() => setQuiz(null)} />;
@@ -286,7 +293,37 @@ export function Practice() {
             开始一轮
           </button>
         </section>
-        <WrongPanel onPractice={(items, title) => setQuiz({ items, title })} />
+        <WrongPanel
+          onPractice={(items, title) => setQuiz({ items, title })}
+          category={wrongCategory}
+          onCategory={setWrongCategory}
+          wordCount={mistakeIds.length}
+          words={<>
+            <p className="muted">重练答对后移出。有间隔复习计划的错词会保留到复习完成，手动移除也会取消待复习题。</p>
+            {mistakeIds.length > 0 && (
+              <ul className="wrong-list" aria-label="错词清单">
+                {mistakeIds.map((id) => {
+                  const word = atlas.byId.get(id)!;
+                  return (
+                    <li key={id}>
+                      <button type="button" className="wrong-word" aria-label={`查看词条 ${word.word}`} onClick={() => openWord(id)}>
+                        <b lang="en">{word.word}</b><small>{word.zh}</small>
+                      </button>
+                      <button type="button" className="btn btn-ghost btn-sm" aria-label={`移除错词 ${word.word}`} onClick={() => store.progress((p) => ({
+                        ...p, ...removeWordMistake(p.mistakes, p.practiceReviews, id),
+                      }))}>移除</button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <button className="btn btn-primary" disabled={loading || !mistakeIds.length} onClick={() => {
+              setMode("word");
+              setSource("mistakes");
+              startFrom(mistakeIds, "word");
+            }}><RotateCcw size={16} /> {mistakeIds.length ? "重练错词" : "暂无错词"}</button>
+          </>}
+        />
         <section className="panel practice-side">
           <img src={`${import.meta.env.BASE_URL}brand/listen.webp`} alt="" />
           <dl className="mini-stats">
@@ -364,13 +401,14 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
     setValue(submitted);
     setResults(next);
     const now = Date.now();
-    const practiceReviews = store.get().progress.practiceReviews;
+    const { practiceReviews, mistakes } = store.get().progress;
     const updated = updatePracticeReview(practiceReviews, prompt, ok, now);
+    const remaining = ok ? forgetResolvedWord(mistakes, updated, prompt.id) : mistakes;
     const roundFinished = !review && next.length === questions.length;
-    if (updated !== practiceReviews || roundFinished) store.progress((p) => ({
+    if (updated !== practiceReviews || remaining !== mistakes || roundFinished) store.progress((p) => ({
       ...p,
       practiceReviews: updated,
-      mistakes: ok ? p.mistakes : [prompt.id, ...p.mistakes.filter((id) => id !== prompt.id)].slice(0, 300),
+      mistakes: ok ? remaining : [prompt.id, ...p.mistakes.filter((id) => id !== prompt.id)].slice(0, 300),
       typing: roundFinished
         ? [...p.typing, { at: now, mode, items: questions.length, wpm: 0, accuracy: Math.round(next.filter((r) => r.correct).length / questions.length * 100) }].slice(-500)
         : p.typing,
@@ -448,25 +486,27 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
         </span>
       </header>
       <section className="paper-stage">
-        <p className="paper-tip">{tip}</p>
-        {mode === "word" && (
-          <div className="paper-cue">
-            <Illustration key={i} src={atlas.img(e)} word={e.w} topic={0} eager hideWord />
-            <p>
-              <span className="pos">{e.senses[0]?.pos}</span> {e.senses[0]?.zh}
-            </p>
-          </div>
-        )}
-        {mode === "sentence" && <p className="paper-zh">{e.ex[0].zh}</p>}
-        <div className="paper-listen">
-          <button className={`btn ${mode === "sentence" ? "btn-ghost" : "btn-primary btn-xl"}`} onClick={() => say()}>
-            <Headphones size={20} /> {mode === "sentence" ? "想不起来？听一遍" : "再听一遍"}
-          </button>
-          {mode !== "sentence" && (
-            <button className="btn btn-ghost" onClick={() => say(0.7)}>
-              <Snail size={18} /> 慢速
-            </button>
+        <div className="paper-prompt">
+          <p className="paper-tip">{tip}</p>
+          {mode === "word" && (
+            <div className="paper-cue">
+              <Illustration key={i} src={atlas.img(e)} word={e.w} topic={0} eager hideWord />
+              <p>
+                <span className="pos">{e.senses[0]?.pos}</span> {e.senses[0]?.zh}
+              </p>
+            </div>
           )}
+          {mode === "sentence" && <p className="paper-zh">{e.ex[0].zh}</p>}
+          <div className="paper-listen">
+            <button className={`btn ${mode === "sentence" ? "btn-ghost" : "btn-primary btn-xl"}`} onClick={() => say()}>
+              <Headphones size={20} /> {mode === "sentence" ? "想不起来？听一遍" : "再听一遍"}
+            </button>
+            {mode !== "sentence" && (
+              <button className="btn btn-ghost" onClick={() => say(0.7)}>
+                <Snail size={18} /> 慢速
+              </button>
+            )}
+          </div>
         </div>
 
         {!grade ? (

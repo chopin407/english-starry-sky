@@ -20,6 +20,19 @@ export const practiceReviewedAt = (review: PracticeReview) => review.due - INTER
 
 export const practiceKey = ({ id, mode, book }: PracticePrompt) => JSON.stringify([book, id, mode]);
 
+export function forgetResolvedWord(mistakes: string[], reviews: Record<string, PracticeReview>, id: string) {
+  return mistakes.includes(id) && !Object.values(reviews).some((review) => review.id === id)
+    ? mistakes.filter((word) => word !== id)
+    : mistakes;
+}
+
+export function removeWordMistake(mistakes: string[], reviews: Record<string, PracticeReview>, id: string) {
+  return {
+    mistakes: mistakes.filter((word) => word !== id),
+    practiceReviews: Object.fromEntries(Object.entries(reviews).filter(([, review]) => review.id !== id)),
+  };
+}
+
 export function updatePracticeReview(reviews: Record<string, PracticeReview>, prompt: PracticePrompt, correct: boolean, now: number) {
   const key = practiceKey(prompt);
   const current = reviews[key];

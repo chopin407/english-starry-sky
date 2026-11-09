@@ -9,6 +9,24 @@ export const clean = (text: string) =>
 export const same = (a: string, b: string) =>
   clean(a).toLowerCase() === clean(b).toLowerCase();
 
+export const SPELL_GAP = "\u2063";
+
+/** Select a letter, creating editable blanks if the learner taps ahead. */
+export function spellSlotEdit(value: string, targetWords: string[], wordIndex: number, slotIndex: number) {
+  const words = value.split(/\s/);
+  for (let i = 0; i < wordIndex; i++) {
+    if (i >= words.length - 1) {
+      const missing = Array.from(targetWords[i] ?? "").length - Array.from(words[i] ?? "").length;
+      words[i] = (words[i] ?? "") + SPELL_GAP.repeat(Math.max(0, missing));
+    }
+  }
+  const letters = Array.from(words[wordIndex] ?? "");
+  const prefix = letters.slice(0, slotIndex).join("") + SPELL_GAP.repeat(Math.max(0, slotIndex - letters.length));
+  words[wordIndex] = prefix + letters.slice(slotIndex).join("");
+  const start = words.slice(0, wordIndex).reduce((sum, word) => sum + word.length + 1, prefix.length);
+  return { value: words.join(" "), start, end: start + (letters[slotIndex]?.length ?? 0) };
+}
+
 const normalizeDictation = (text: string) => clean(text).trim().replace(/ +/g, " ");
 
 export function dictationWordForms(target: string) {
