@@ -7,9 +7,9 @@ import { go, openWord } from "../lib/router";
 import { cue } from "../lib/sound";
 import { greetingFor } from "../lib/greeting";
 import { hashSeed } from "../lib/text";
-import { buildSession, sessionFor, todayPlan, withSession } from "../store/session";
+import { buildSession, pilotPlan, sessionFor, supportsJourneyPilot, todayPlan, withSession } from "../store/session";
 import { isMastered } from "../store/srs";
-import { dayKey, store, useStore } from "../store/store";
+import { dayKey, store, useStore, type JourneyPilot } from "../store/store";
 import { Galaxy } from "../galaxy/Galaxy";
 import { Highlight, Pronounce } from "../ui/EntryView";
 import { Illustration } from "../ui/Illustration";
@@ -58,11 +58,14 @@ export function Today() {
   const streak = streakOf(progress.days);
   const session = sessionFor(atlas, progress);
   const active = session && !session.finished ? session : null;
+  const pilot = supportsJourneyPilot(atlas);
+  const short = pilot ? pilotPlan(atlas, plan, "short") : null;
+  const shortAvailable = !!short && short.due.length + short.fresh.length > 0;
   const total = plan.due.length + plan.fresh.length;
   const goal = settings.dailyNew + Math.min(plan.due.length, 60);
   const doneToday = today?.r ?? 0;
 
-  const start = (opts?: { reviewOnly?: boolean; extra?: number }) => {
+  const start = (opts?: { reviewOnly?: boolean; extra?: number; pilot?: JourneyPilot }) => {
     if (!active) {
       const s = buildSession(
         atlas,
@@ -70,7 +73,7 @@ export function Today() {
         opts?.extra
           ? { ...settings, dailyNew: (today?.n ?? 0) + opts.extra }
           : settings,
-        { reviewOnly: opts?.reviewOnly },
+        { reviewOnly: opts?.reviewOnly, pilot: opts?.pilot },
       );
       if (!s.steps.length) return;
       store.progress((p) => withSession(atlas, p, s));
@@ -94,7 +97,7 @@ export function Today() {
   // 进度各册共用，这里只数当前这一册的词，和星图上的点亮数对得上
   const learned = atlas.words.filter((w) => progress.cards[w.id]).length;
   const mastered = atlas.words.filter((w) => progress.cards[w.id] && isMastered(progress.cards[w.id])).length;
-  const teaser = (active ? active.newIds : plan.fresh)
+  const teaser = (active ? active.newIds : shortAvailable ? short.fresh : plan.fresh)
     .slice(0, 5)
     .map((id) => atlas.byId.get(id)!)
     .filter(Boolean);
@@ -127,6 +130,16 @@ export function Today() {
                 还剩 <b>{active.steps.length - active.index}</b> 步
               </h2>
               <p className="journey-lede">进度已保存，随时接着走。</p>
+            </>
+          ) : shortAvailable ? (
+            <>
+              <p className="eyebrow eyebrow-light">今日旅程 · 短任务试行</p>
+              <h2>约 <b>5</b> 分钟，走一小段</h2>
+              <p className="journey-lede">
+                {short.due.length > 0 && `复习 ${short.due.length} 个到期词`}
+                {short.due.length > 0 && short.fresh.length > 0 && "，再"}
+                {short.fresh.length > 0 && `认识 ${short.fresh.length} 个新词`}。
+              </p>
             </>
           ) : total > 0 ? (
             <>
@@ -175,9 +188,9 @@ export function Today() {
             {active || total > 0 ? (
               <button
                 className="btn btn-primary btn-xl"
-                onClick={() => start()}
+                onClick={() => start(shortAvailable ? { pilot: "short" } : undefined)}
               >
-                {active ? "继续旅程" : "开始今天的旅程"}{" "}
+                {active ? "继续旅程" : shortAvailable ? "开始短任务" : "开始今天的旅程"}{" "}
                 <ArrowRight size={20} />
               </button>
             ) : (
@@ -187,6 +200,12 @@ export function Today() {
               >
                 再认识 5 个新词 <Sparkles size={18} />
               </button>
+            )}
+            {!active && shortAvailable && (
+              <>
+                <button className="btn btn-glass" onClick={() => start({ pilot: "warmup" })}>2 分钟热身</button>
+                <button className="btn btn-glass" onClick={() => start()}>完整旅程</button>
+              </>
             )}
             {!active && plan.due.length > 0 && plan.fresh.length > 0 && (
               <button
@@ -215,7 +234,7 @@ export function Today() {
           <div className="panel-head">
             <h3 className="eyebrow">这一周</h3>
             <span className={`streak ${streak ? "is-on" : ""}`}>
-              <Flame size={16} /> 连续 {streak} 天
+              <Flame size={16} /> {pilot ? `近 7 天学了 ${week.filter((day) => day.v > 0).length} 天` : `连续 ${streak} 天`}
             </span>
           </div>
           <div className="streak-body">

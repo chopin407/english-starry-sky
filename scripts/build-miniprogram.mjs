@@ -121,6 +121,7 @@ await build({
       export { review, preview, Rating, formatInterval, isMastered } from "./src/store/srs.ts";
       export { dueCardIds } from "./src/store/due.ts";
       export { gradeDictation } from "./src/lib/typing.ts";
+      export { essayDraftLimit, essayOpenings, gradeEssay } from "./src/lib/essayPractice.ts";
       export { sameGrammarAnswer, shuffle } from "./src/lib/text.ts";
     `,
     resolveDir: root,

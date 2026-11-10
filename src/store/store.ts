@@ -6,7 +6,8 @@ import { AMBIENCE, type AmbienceId } from "../lib/ambience";
 import { practiceKey, validPracticeReview, type PracticeMode, type PracticeReview } from "./practiceReview";
 
 export type QuizKind = "meaning" | "picture" | "listen" | "spell";
-export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind; retry?: boolean; options?: string[] };
+export type JourneyPilot = "short" | "warmup";
+export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind; retry?: boolean; guided?: boolean; options?: string[] };
 
 export interface ActiveSession {
   id: string;
@@ -17,6 +18,9 @@ export interface ActiveSession {
   graded: Record<string, Grade>;
   newIds: string[];
   reviewIds: string[];
+  pilot?: JourneyPilot;
+  firstHinted?: string[];
+  recovered?: string[];
   /** Answer shown but not yet continued; survives reload without double counting. */
   pending?: { correct: boolean; value: string };
   finished?: number;

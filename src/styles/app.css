@@ -2934,6 +2934,32 @@ code {
   font-size: 13px;
   max-width: 48ch;
 }
+.journey-guidance {
+  margin: 0 auto 12px;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 12px;
+  color: var(--ink);
+  background: var(--ochre-soft);
+}
+.journey-progress-card {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0;
+  padding: 16px;
+  text-align: left;
+  border-radius: 16px;
+  background: var(--sage-soft);
+}
+.journey-progress-card h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.journey-progress-card p { margin: 0; }
+.journey-progress-card .summary-actions {
+  justify-content: flex-start;
+  margin-top: 6px;
+}
 .summary-actions {
   display: flex;
   justify-content: center;
@@ -4117,6 +4143,10 @@ a:hover .mark-needle,
 .galaxy-full canvas:active {
   cursor: grabbing;
 }
+.galaxy-full canvas:focus-visible {
+  outline: 2px solid #ffe2a8;
+  outline-offset: -4px;
+}
 @media (max-width: 759px) {
   .galaxy-full {
     height: calc(100dvh - var(--top) - var(--tab) - 150px);
@@ -4279,16 +4309,42 @@ a:hover .mark-needle,
   background: rgba(243, 236, 223, 0.18);
   color: #fff;
 }
-.galaxy-hint {
+.galaxy-footer {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16px;
+  inset-inline: 10px;
+  bottom: 12px;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.galaxy-mode {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(243, 236, 223, 0.2);
+  border-radius: 999px;
+  background: #171c31;
+  pointer-events: auto;
+}
+.galaxy-mode button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.galaxy-mode button[aria-pressed="true"] {
+  background: #f3ecdf;
+  color: #161c31;
+}
+.galaxy-hint {
+  margin: 0;
   text-align: center;
   font-size: 12px;
-  letter-spacing: 0.08em;
-  color: rgba(243, 236, 223, 0.45);
-  pointer-events: none;
+  color: rgba(243, 236, 223, 0.72);
 }
 .galaxy-fallback {
   display: none;
@@ -4653,6 +4709,69 @@ a:hover .mark-needle,
 .essay-vocab dd { margin: 6px 0 0; }
 @media (min-width: 650px) {
   .essay-vocab { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.essay-practice-panel {
+  display: grid;
+  gap: 12px;
+}
+.essay-practice-panel p { margin: 0; }
+.essay-hints {
+  display: grid;
+  gap: 8px;
+}
+.essay-hints details {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.essay-hints summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.essay-hints ol {
+  margin: 8px 0 0;
+  padding-inline-start: 24px;
+}
+.essay-practice-panel label { font-weight: 650; }
+.essay-practice-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: clamp(220px, 36vh, 380px);
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--card-2);
+  color: var(--ink);
+  font: 17px/1.7 var(--learn);
+}
+.essay-practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.essay-comparison {
+  display: grid;
+  gap: 12px;
+}
+.essay-comparison > section {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.essay-comparison h3 { margin: 0 0 6px; font-size: 16px; }
+.essay-comparison p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 17px/1.75 var(--learn);
+}
+.essay-comparison mark { color: inherit; border-radius: 3px; }
+.essay-mark-difference { background: var(--terra-soft); text-decoration: underline; }
+.essay-mark-cap { background: var(--sky-soft); }
+.essay-mark-punct { background: var(--ochre-soft); }
+@media (min-width: 700px) {
+  .essay-comparison { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .points .pt-cats {
@@ -5020,6 +5139,9 @@ a:hover .mark-needle,
 .paper-verdict.is-wrong {
   color: var(--terra-ink);
   background: var(--terra-soft);
+}
+.paper-verdict .spelling-encouragement {
+  flex-basis: 100%;
 }
 .paper-format-note {
   padding: 2px 8px;

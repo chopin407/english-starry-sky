@@ -1,6 +1,7 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, PenLine } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { BOOKS, bookById, bookTag } from "../lib/books";
+import { essayDraftLimit, essayOpenings, gradeEssay } from "../lib/essayPractice";
 import { essaysByBook, type Essay } from "../lib/essays";
 import { href, type Route } from "../lib/router";
 import { useStore } from "../store/store";
@@ -58,7 +59,7 @@ export default function Essays({ route }: { route: Extract<Route, { page: "essay
                 </p>
                 <p>{item.summary}</p>
                 <span className="essay-card-link">
-                  阅读与讲解 <ArrowRight size={16} aria-hidden="true" />
+                  阅读、讲解与默写 <ArrowRight size={16} aria-hidden="true" />
                 </span>
               </a>
             </li>
@@ -80,6 +81,9 @@ export default function Essays({ route }: { route: Extract<Route, { page: "essay
 
 function EssayDetail({ essay, book }: { essay: Essay; book: string }) {
   const [version, setVersion] = useState(0);
+  const [practicing, setPracticing] = useState(false);
+  if (practicing) return <EssayPractice essay={essay} version={version} onExit={() => setPracticing(false)} />;
+
   return (
     <article className="page essays essay-detail">
       <a className="btn btn-ghost essay-back" href={href({ page: "essays", book })}>
@@ -98,6 +102,9 @@ function EssayDetail({ essay, book }: { essay: Essay; book: string }) {
       <section className="panel essay-text" aria-labelledby="essay-text-title">
         <div className="essay-section-head">
           <h2 id="essay-text-title">范文正文</h2>
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => setPracticing(true)}>
+            <PenLine size={17} aria-hidden="true" /> 开始默写
+          </button>
           {essay.versions.length > 1 && (
             <div className="segmented" role="group" aria-label="范文版本">
               {essay.versions.map(({ label }, i) => (
@@ -160,6 +167,104 @@ function EssayDetail({ essay, book }: { essay: Essay; book: string }) {
           ))}
         </dl>
       </section>
+    </article>
+  );
+}
+
+function EssayPractice({ essay, version, onExit }: { essay: Essay; version: number; onExit: () => void }) {
+  const [draft, setDraft] = useState("");
+  const [result, setResult] = useState<ReturnType<typeof gradeEssay> | null>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const verdict = useRef<HTMLHeadingElement>(null);
+  const current = essay.versions[version];
+  const reference = current.paragraphs.join("\n\n");
+  const formats = result?.formats.map((kind) => kind === "cap" ? "大小写" : "标点");
+
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0 });
+  }, []);
+  useEffect(() => {
+    if (!result) return;
+    verdict.current?.focus({ preventScroll: true });
+    verdict.current?.scrollIntoView({ block: "start" });
+  }, [result]);
+
+  return (
+    <article className="page essays essay-detail essay-practice">
+      <button type="button" className="btn btn-ghost essay-back" onClick={onExit}>
+        <ArrowLeft size={17} aria-hidden="true" /> 返回范文
+      </button>
+      <header className="page-head">
+        <p className="eyebrow">范文默写 · {current.label}</p>
+        <h1 className="display" tabIndex={-1} ref={heading}>{essay.title}</h1>
+        <p className="essay-english-title" lang="en">{essay.englishTitle}</p>
+      </header>
+      {result ? (
+        <section className="panel essay-practice-panel" aria-labelledby="essay-result-title">
+          <div role="status">
+            <h2 id="essay-result-title" ref={verdict} tabIndex={-1}>{result.correct ? "默写正确" : "还有内容需要核对"}</h2>
+            <p className="muted">
+              {result.correct
+                ? formats?.length ? `内容正确，请留意${formats.join("和")}。` : "正文与当前版本一致。"
+                : `按顺序匹配了 ${result.matched} / ${result.total} 个参考词。对照高亮处核对漏写、多写或写错的内容。`}
+            </p>
+          </div>
+          <div className="essay-comparison">
+            {[
+              { label: "你的默写", parts: result.draft },
+              { label: "参考原文", parts: result.reference },
+            ].map(({ label, parts }) => (
+              <section key={label}>
+                <h3>{label}</h3>
+                <p lang="en">{parts.map(({ text, mark }, i) =>
+                  mark ? <mark key={i} className={`essay-mark-${mark}`}>{text}</mark> : text,
+                )}</p>
+              </section>
+            ))}
+          </div>
+          <div className="essay-practice-actions">
+            <button type="button" className="btn btn-primary" onClick={() => setResult(null)}>修改后重交</button>
+            <button type="button" className="btn btn-ghost" onClick={() => {
+              setDraft("");
+              setResult(null);
+            }}>重新默写</button>
+          </div>
+        </section>
+      ) : (
+        <form className="panel essay-practice-panel" onSubmit={(event) => {
+          event.preventDefault();
+          if (draft.trim()) setResult(gradeEssay(draft, reference));
+        }}>
+          <p id="essay-practice-guide" className="muted">默写所选版本的 {current.paragraphs.length} 段正文。需要时可展开提示。</p>
+          <div className="essay-hints">
+            <details>
+              <summary>写作提纲</summary>
+              <ol>{essay.outline.map((step, i) => <li key={i}>{step}</li>)}</ol>
+            </details>
+            <details>
+              <summary>段首提示</summary>
+              <ol lang="en">{essayOpenings(current.paragraphs).map((opening, i) => <li key={i}>{opening}…</li>)}</ol>
+            </details>
+          </div>
+          <label htmlFor="essay-draft">默写正文</label>
+          <textarea
+            id="essay-draft"
+            lang="en"
+            aria-describedby="essay-practice-guide"
+            placeholder="在这里默写英文正文"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            maxLength={essayDraftLimit(reference)}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <div className="essay-practice-actions">
+            <button type="submit" className="btn btn-primary" disabled={!draft.trim()}>提交批改</button>
+          </div>
+        </form>
+      )}
     </article>
   );
 }

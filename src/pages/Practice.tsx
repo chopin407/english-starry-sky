@@ -13,6 +13,7 @@ import { store, useStore } from "../store/store";
 import { AmbiencePicker } from "../ui/Ambience";
 import { Illustration } from "../ui/Illustration";
 import { SpellInput } from "../ui/SpellInput";
+import { SpellingEncouragement } from "../ui/SpellingEncouragement";
 import { Quiz, WrongPanel, type Item } from "./Points";
 import { ChallengeSwitch } from "./Challenge";
 
@@ -467,6 +468,7 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
 
   const { atlas, entry: e } = question;
   const expected = answer(question);
+  const target = mode === "word" ? dictationWordForms(expected)[0] : expected.trim();
   const format = grade?.format;
   const parts = format?.reference ?? (grade ? markTricky(expected, e.w) : []);
   const tip =
@@ -510,13 +512,14 @@ function DictationRound({ questions, review, onExit, onAgain, loading, loadError
         </div>
 
         {!grade ? (
-          <SpellInput key={i} target={mode === "word" ? dictationWordForms(expected)[0] : expected.trim()} onSubmit={judge} />
+          <SpellInput key={i} target={target} onSubmit={judge} />
         ) : (
           <div className="paper-answer">
             <div role="status" className={`paper-verdict ${grade.correct ? "is-correct" : "is-wrong"}`}>
               {grade.correct ? <Check size={20} aria-hidden="true" /> : <X size={20} aria-hidden="true" />}
               <b>{grade.correct ? "回答正确" : "答错了 · 已加入错词本"}</b>
               {format && <span className="paper-format-note">注意{format.kinds.map((kind) => kind === "cap" ? "大小写" : "标点").join("和")}</span>}
+              {!grade.correct && mode === "word" && <SpellingEncouragement />}
             </div>
             {(!grade.correct || format) && (
               <p className="paper-submitted">

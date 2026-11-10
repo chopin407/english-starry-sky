@@ -4,7 +4,7 @@ import { hashSeed, normalize, shuffle } from "../lib/text";
 import { forgetResolvedWord } from "./practiceReview";
 import { dueCardIds } from "./due";
 import { isMastered, review, Rating, type Grade } from "./srs";
-import { bumpDay, dayKey, store, type ActiveSession, type Progress, type QuizKind, type Settings, type Step } from "./store";
+import { bumpDay, dayKey, store, type ActiveSession, type JourneyPilot, type Progress, type QuizKind, type Settings, type Step } from "./store";
 
 export function dueIds(p: Progress, now = Date.now()) {
   return dueCardIds(p.cards, now);
@@ -34,6 +34,17 @@ export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {
   const newLeft = Math.max(0, s.dailyNew - newToday(p));
   const fresh = nextNew(atlas, p, s, newLeft);
   return { due, fresh, minutes: Math.max(1, Math.round(due.length * 0.25 + fresh.length * 0.9)) };
+}
+
+export const supportsJourneyPilot = (atlas: Atlas) => atlas.kind === "open" && (atlas.book === "6a" || atlas.book === "7a");
+
+export function pilotPlan(atlas: Atlas, plan: ReturnType<typeof todayPlan>, pilot: JourneyPilot) {
+  const [reviews, fresh] = pilot === "warmup" ? [4, 1] : [8, 3];
+  const due = plan.due.filter((id) => {
+    const ref = atlas.byId.get(id);
+    return ref && atlas.words[ref.order]?.id === id;
+  });
+  return { due: due.slice(0, reviews), fresh: plan.fresh.slice(0, fresh) };
 }
 
 const sessionKey = (atlas: Atlas) => atlas.book ?? atlas.id;
@@ -114,9 +125,11 @@ export function distractors(atlas: Atlas, ref: WordRef, kind: QuizKind, seed: nu
   return shuffle([ref.id, ...picks], seed);
 }
 
-export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { ids?: string[]; reviewOnly?: boolean }): ActiveSession {
+export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { ids?: string[]; reviewOnly?: boolean; pilot?: JourneyPilot }): ActiveSession {
   const seed = Date.now();
-  const plan = todayPlan(atlas, p, s);
+  const pilot = !opts?.ids && supportsJourneyPilot(atlas) ? opts?.pilot : undefined;
+  const daily = todayPlan(atlas, p, s);
+  const plan = pilot ? pilotPlan(atlas, daily, pilot) : daily;
   const reviewIds = opts?.ids ? opts.ids.filter((id) => p.cards[id]) : plan.due.slice(0, 120);
   const newIds = opts?.ids ? opts.ids.filter((id) => !p.cards[id]) : opts?.reviewOnly ? [] : plan.fresh;
   const steps: Step[] = [];
@@ -133,7 +146,7 @@ export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { id
     group.forEach((id) => steps.push({ id, kind: "intro" }));
     shuffle(group, seed + g).forEach((id, i) => steps.push(quiz(id, 1000 + g + i)));
   }
-  return { id: `s${seed}`, started: seed, steps, index: 0, graded: {}, newIds, reviewIds };
+  return { id: `s${seed}`, started: seed, steps, index: 0, graded: {}, newIds, reviewIds, ...(pilot ? { pilot } : {}) };
 }
 
 export function gradeFor(kind: QuizKind, correct: boolean, ms: number, hinted: boolean): Grade {
@@ -147,38 +160,56 @@ export function gradeFor(kind: QuizKind, correct: boolean, ms: number, hinted: b
 }
 
 /** Apply an answer. Only the first attempt for a word in a session updates memory and stats. */
-export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: boolean, grade: Grade, value: string) {
+export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: boolean, grade: Grade, value: string, usedHint = false) {
   const { settings } = store.get();
-  store.progress((p) => {
-    const sess = sessionFor(atlas, p);
-    if (!sess) return p;
-    let next = p;
-    let updated = { ...sess, pending: { correct, value } };
-    const first = !(step.id in sess.graded) && !step.retry;
-    if (first) {
-      next = {
-        ...next,
-        cards: { ...next.cards, [step.id]: review(p.cards[step.id], grade, Date.now(), settings.retention) },
-        mistakes: correct ? next.mistakes : [step.id, ...next.mistakes.filter((x) => x !== step.id)].slice(0, 300),
-      };
-      updated = { ...updated, graded: { ...sess.graded, [step.id]: grade } };
-      next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0 });
-    }
-    if (!correct) {
-      // Practise it again a few steps later in another format; never re-graded.
-      const steps = [...updated.steps];
-      const retries = steps.filter((x) => x.id === step.id && "retry" in x && x.retry).length;
-      if (retries < 2) {
-        const ref = atlas.byId.get(step.id)!;
-        const kind: QuizKind = step.kind === "meaning" ? (ref.media & MEDIA.img ? "picture" : "listen") : "meaning";
-        const at = Math.min(steps.length, sess.index + 4);
-        steps.splice(at, 0, { id: step.id, kind, retry: true, options: distractors(atlas, ref, kind, Date.now()) });
-        updated = { ...updated, steps };
+  store.progress((p) => applyJourneyAnswer(atlas, p, settings, step, { correct, grade, value, usedHint }));
+}
+
+export function applyJourneyAnswer(atlas: Atlas, p: Progress, settings: Settings, step: Step & { kind: QuizKind },
+  { correct, grade, value, usedHint }: { correct: boolean; grade: Grade; value: string; usedHint: boolean }, now = Date.now()) {
+  const sess = sessionFor(atlas, p);
+  if (!sess || sess.pending) return p;
+  let next = p;
+  let updated: ActiveSession = { ...sess, pending: { correct, value } };
+  const first = !(step.id in sess.graded) && !step.retry;
+  if (first) {
+    next = {
+      ...next,
+      cards: { ...next.cards, [step.id]: review(p.cards[step.id], grade, now, settings.retention) },
+      mistakes: correct ? next.mistakes : [step.id, ...next.mistakes.filter((x) => x !== step.id)].slice(0, 300),
+    };
+    updated = { ...updated, graded: { ...sess.graded, [step.id]: grade } };
+    if (sess.pilot && usedHint && correct) updated.firstHinted = [...(sess.firstHinted ?? []), step.id];
+    next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0 });
+  }
+
+  const guidedChoice = step.guided && step.kind !== "spell";
+  const independent = correct && !usedHint && !guidedChoice;
+  if (sess.pilot && independent && step.retry && (sess.graded[step.id] === Rating.Again || sess.firstHinted?.includes(step.id))) {
+    updated.recovered = [...new Set([...(sess.recovered ?? []), step.id])];
+  }
+  if (!correct || (sess.pilot && (usedHint || guidedChoice))) {
+    const retries = sess.steps.filter((item) => item.id === step.id && item.kind !== "intro" && item.retry).length;
+    // A guided multiple-choice attempt is followed by one unaided check.
+    if (retries < 2 || (sess.pilot && guidedChoice && retries === 2)) {
+      const ref = atlas.byId.get(step.id)!;
+      const canSpell = settings.spell && /\p{L}.*\p{L}/u.test(ref.word);
+      const kind: QuizKind = sess.pilot
+        ? canSpell ? "spell" : "listen"
+        : step.kind === "meaning" ? (ref.media & MEDIA.img ? "picture" : "listen") : "meaning";
+      const guided = !!sess.pilot && kind !== "spell" && !correct && retries === 1;
+      let options = kind === "spell" ? undefined : distractors(atlas, ref, kind, now);
+      if (guided && options) {
+        const alternative = options.find((id) => id !== ref.id);
+        options = options.filter((id) => id === ref.id || id === alternative);
       }
+      const steps = [...sess.steps];
+      steps.splice(sess.index + 4, 0, { id: step.id, kind, retry: true, ...(guided ? { guided } : {}), options });
+      updated = { ...updated, steps };
     }
-    if (correct) next = { ...next, mistakes: forgetResolvedWord(next.mistakes, next.practiceReviews, step.id) };
-    return withSession(atlas, next, updated);
-  });
+  }
+  if (sess.pilot ? independent : correct) next = { ...next, mistakes: forgetResolvedWord(next.mistakes, next.practiceReviews, step.id) };
+  return withSession(atlas, next, updated);
 }
 
 /** Move to the next step; `seconds` is time spent on this step, capped so idle tabs don't inflate stats. */
@@ -197,6 +228,13 @@ export function sessionStats(s: ActiveSession) {
   const graded = Object.values(s.graded);
   const correct = graded.filter((g) => g !== Rating.Again).length;
   return { total: graded.length, correct, accuracy: graded.length ? Math.round((correct / graded.length) * 100) : 0 };
+}
+
+export function journeyProgress(s: ActiveSession) {
+  return {
+    reviewCorrect: s.reviewIds.filter((id) => s.graded[id] && s.graded[id] !== Rating.Again && !s.firstHinted?.includes(id)).length,
+    recovered: s.recovered ?? [],
+  };
 }
 
 export const masteredCount = (p: Progress) => Object.values(p.cards).filter(isMastered).length;

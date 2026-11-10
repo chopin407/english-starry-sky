@@ -2,6 +2,80 @@ import type { Essay } from "../../lib/essays";
 
 export default [
   {
+    id: "midterm-2026-my-classroom",
+    title: "介绍我的教室 · 2026 年期中",
+    englishTitle: "Introducing My Classroom",
+    topic: "校园生活",
+    summary: "描述教室的布置，写与同学在课堂和课间的日常，最后表达对班级的感情。",
+    versions: [
+      {
+        label: "7 分版",
+        paragraphs: [
+          "I would like to introduce my classroom. It is very bright and clean. There are many desks and chairs in it, and some nice pictures are on the walls. My classmates and I study together here every day. Between classes, we always talk and share ideas happily.",
+          "I feel very happy and warm in this place. I love my classroom!",
+        ],
+      },
+      {
+        label: "10 分版",
+        paragraphs: [
+          "I would like to introduce my classroom. It is not only a warm place to study, but also a sweet home for all of us.",
+          "Our classroom is always bright and clean. Sunlight shines through the large windows onto our tidy desks every morning. On the back wall, we put up colorful pictures and posters that show our school life. Every school day, my classmates and I study together, listen attentively in class, and share ideas actively in group discussions. Whenever we run into problems, we always help each other out.",
+          "I feel truly lucky and happy to be part of this class. It is a place full of love and energy, and I am sure we will create more wonderful memories here as a family.",
+        ],
+      },
+    ],
+    outline: [
+      "介绍教室。先说教室明亮整洁，再用课桌、墙上的图片或窗外照进来的阳光写出具体画面。",
+      "交代日常。写自己和同学一起学习、讨论或在课间交流，10 分版还写了遇到困难时相互帮助。",
+      "表达感受。说出自己为什么喜欢这间教室，也可以写自己身为班级一员的感受和对未来的期待。",
+    ],
+    grammar: [
+      {
+        title: "would like to do 引出介绍对象",
+        example: "I would like to introduce my classroom.",
+        translation: "我想介绍一下我的教室。",
+        explanation: "would like to 表示想做某事，后面接动词原形。introduce 是及物动词，直接接要介绍的人或事物。",
+        tip: "注意 to 后写 introduce，例如 I would like to introduce my school.",
+      },
+      {
+        title: "there are 描述教室里的物品",
+        example: "There are many desks and chairs in it, and some nice pictures are on the walls.",
+        translation: "里面有许多课桌和椅子，墙上还有一些好看的图片。",
+        explanation: "there be 用来说明某处有什么。many desks and chairs 是复数，所以用 are。in it 中的 it 指前文的教室。",
+        tip: "描述单个物品时用 there is，例如 There is a map on the wall.",
+      },
+      {
+        title: "not only ... but also ... 连接并列成分",
+        example: "It is not only a warm place to study, but also a sweet home for all of us.",
+        translation: "它既是一个温暖的学习场所，也是我们所有人的温馨家园。",
+        explanation: "not only 和 but also 后面各接一个名词短语，都用来说明教室是什么。to study 修饰 a warm place，说明这个地方的用途。",
+        tip: "留意并列结构。例如 It is not only bright but also clean 中，两边都用形容词。",
+      },
+      {
+        title: "用 that 从句说明图片的内容",
+        example: "On the back wall, we put up colorful pictures and posters that show our school life.",
+        translation: "我们在后墙上贴了展示校园生活的彩色图片和海报。",
+        explanation: "that show our school life 紧跟在 pictures and posters 后，说明这些图片和海报展示什么。that 在从句中作主语，指代复数名词，所以用 show。",
+        tip: "如果写单数 a poster，动词要写 shows，例如 a poster that shows our school life。",
+      },
+      {
+        title: "whenever 引导时间状语从句",
+        example: "Whenever we run into problems, we always help each other out.",
+        translation: "每当遇到困难，我们总是互相帮助。",
+        explanation: "Whenever we run into problems 表示每次遇到问题时，后面的主句写同学们会怎么做。这里说的是经常发生的事，两部分都用一般现在时。",
+        tip: "从句放在句首时，通常用逗号与主句隔开。",
+      },
+    ],
+    vocabulary: [
+      { term: "between classes", meaning: "课间", usage: "可放在句首交代时间。in class 表示上课时，after class 表示下课后。" },
+      { term: "share ideas", meaning: "交流想法", usage: "要说明和谁交流，可以接 with，例如 share ideas with my classmates。" },
+      { term: "shine through ... onto ...", meaning: "透过……照到……上", usage: "through 后接光线穿过的事物，onto 后接光线照到的表面。" },
+      { term: "put up pictures", meaning: "张贴图片", usage: "可换成 put up posters 或 put up notices。描述贴在哪里，可以加 on the wall。" },
+      { term: "run into problems", meaning: "遇到困难", usage: "和 help each other out 连用，能自然写出遇到困难以及如何解决的过程。" },
+      { term: "be part of", meaning: "是……的一员", usage: "后接群体或组织，例如 be part of this class。可搭配 feel lucky to 表达归属感。" },
+    ],
+  },
+  {
     id: "sports-field",
     title: "我最喜欢的校园一角 · 操场",
     englishTitle: "My Favorite Place in My School",

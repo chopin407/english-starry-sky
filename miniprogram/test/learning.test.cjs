@@ -116,3 +116,30 @@ test("the sample reading can be completed offline and records the score", () => 
   assert.equal(article.data.done, true);
   assert.deepEqual(progress.get().reading[id], { correct: article.questions.length, total: article.questions.length });
 });
+
+test("essay practice grades the selected version and keeps the draft for correction", () => {
+  const essay = page("textbook/essay");
+  essay.onLoad({ book: "7a" });
+  essay.open(event({ index: 0 }));
+  essay.version(event({ index: 1 }));
+  essay.startPractice();
+  assert.equal(essay.data.practicing, true);
+  assert.equal(essay.data.canSubmit, false);
+  assert.equal(essay.data.openings.length, essay.data.essay.versions[1].paragraphs.length);
+  essay.toggleOpenings();
+  assert.equal(essay.data.openingHint, true);
+  const [basic, selected] = essay.data.essay.versions;
+  const wrongVersion = basic.paragraphs.join("\n\n");
+  essay.inputDraft({ detail: { value: wrongVersion } });
+  essay.submitPractice();
+  assert.equal(essay.data.result.correct, false);
+  essay.editPractice();
+  assert.equal(essay.data.draft, wrongVersion);
+  essay.inputDraft({ detail: { value: selected.paragraphs.join("\n\n").toLowerCase() } });
+  essay.submitPractice();
+  assert.equal(essay.data.result.correct, true);
+  assert.match(essay.data.result.formatText, /大小写/);
+  essay.startPractice();
+  assert.equal(essay.data.draft, "");
+  assert.equal(essay.data.index, 1);
+});

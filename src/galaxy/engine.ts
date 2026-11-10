@@ -12,6 +12,8 @@ export interface Camera {
   tz: number;
 }
 
+const VIEW_ANGLE = 0.75;
+
 /* ---------- tiny matrix helpers (column-major, like WebGL) ---------- */
 
 function perspective(fovy: number, aspect: number, near: number, far: number) {
@@ -293,8 +295,37 @@ export class GalaxyEngine {
     this.goal = { tx: p[i * 3], ty: p[i * 3 + 1], tz: p[i * 3 + 2], dist };
   }
 
+  /** Move the camera parallel to the screen so stars follow the drag. */
+  pan(dx: number, dy: number) {
+    if (!dx && !dy) return;
+    this.goal = null;
+    const c = this.cam;
+    const scale = (2 * c.dist * Math.tan(VIEW_ANGLE / 2)) / this.h;
+    const sinYaw = Math.sin(c.yaw);
+    const cosYaw = Math.cos(c.yaw);
+    const sinPitch = Math.sin(c.pitch);
+    const x = c.tx - (dx * cosYaw + dy * sinPitch * sinYaw) * scale;
+    const y = c.ty + dy * Math.cos(c.pitch) * scale;
+    const z = c.tz + (dx * sinYaw - dy * sinPitch * cosYaw) * scale;
+    // Keep the camera target near the galaxy, even after repeated drags.
+    const limit = Math.min(1, 1.2 / Math.hypot(x, y, z));
+    Object.assign(c, { tx: x * limit, ty: y * limit, tz: z * limit });
+  }
+
+  rotate(dx: number, dy: number) {
+    this.goal = null;
+    this.cam.yaw -= dx * 0.006;
+    this.cam.pitch = Math.max(0.12, Math.min(1.45, this.cam.pitch + dy * 0.005));
+  }
+
+  zoom(factor: number) {
+    if (factor === 1) return;
+    this.goal = null;
+    this.cam.dist = Math.max(0.35, Math.min(4.2, this.cam.dist * factor));
+  }
+
   reset() {
-    this.goal = { tx: 0, ty: 0, tz: 0, dist: this.baseDist(), pitch: 1.12 };
+    this.goal = { tx: 0, ty: 0, tz: 0, dist: this.baseDist(), yaw: 0.6, pitch: 1.12 };
   }
 
   replayIntro() {
@@ -329,7 +360,7 @@ export class GalaxyEngine {
     const ex = c.tx + c.dist * Math.cos(c.pitch) * Math.sin(c.yaw);
     const ey = c.ty + c.dist * Math.sin(c.pitch);
     const ez = c.tz + c.dist * Math.cos(c.pitch) * Math.cos(c.yaw);
-    const proj = perspective(0.75, this.w / this.h, 0.02, 20);
+    const proj = perspective(VIEW_ANGLE, this.w / this.h, 0.02, 20);
     this.vp = multiply(proj, lookAt(ex, ey, ez, c.tx, c.ty, c.tz));
   }
 

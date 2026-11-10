@@ -1,4 +1,4 @@
-import { Crosshair, Minus, Plus, RotateCcw, Share2 } from "lucide-react";
+import { Crosshair, Minus, Move, Orbit, Plus, RotateCcw, Share2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAtlas } from "../atlas/context";
 import type { WordRef } from "../atlas/types";
@@ -68,6 +68,7 @@ export function Galaxy({
   const engine = useRef<GalaxyEngine | null>(null);
   const labels = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<{ ref: WordRef; x: number; y: number } | null>(null);
+  const [rotating, setRotating] = useState(false);
   const [fallback, setFallback] = useState(false);
   const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
   // 连成了的星座：一个单元的词全部点亮后，挑几颗星连成线
@@ -91,7 +92,7 @@ export function Galaxy({
       quality: detectQuality(),
       reducedMotion: reduced(),
       preserve: mode === "full",
-      autoRotate: mode === "mini" ? 0.06 : 0.025,
+      autoRotate: mode === "mini" ? 0.06 : 0,
     });
     engine.current = eng;
     setFallback(!eng.webgl);
@@ -210,7 +211,7 @@ export function Galaxy({
   }, [mode]);
 
   /* ---------- interaction (full mode) ---------- */
-  const drag = useRef<{ start: Point; moved: boolean; pinch?: number } | null>(null);
+  const drag = useRef<{ start: Point; moved: boolean; rotate: boolean } | null>(null);
   const pointers = useRef(new Map<number, Point>());
   const lastTwinkle = useRef(0);
   const dwell = useRef(0);
@@ -225,6 +226,12 @@ export function Galaxy({
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
 
+  const clearHover = () => {
+    window.clearTimeout(dwell.current);
+    if (engine.current) engine.current.hover = -1;
+    setHover(null);
+  };
+
   const onMove = (e: React.PointerEvent) => {
     const eng = engine.current;
     if (!eng) return;
@@ -235,18 +242,20 @@ export function Galaxy({
     if (prev && gesture) {
       ps.set(e.pointerId, p);
       if (ps.size === 2) {
-        const [a, b] = [...ps.values()];
-        const dist = distance(a, b);
-        if (gesture.pinch && dist > 0) eng.cam.dist = clampDist(eng.cam.dist * (gesture.pinch / dist));
-        gesture.pinch = dist;
+        const other = [...ps.entries()].find(([id]) => id !== e.pointerId)![1];
+        const before = distance(prev, other);
+        const after = distance(p, other);
+        if (before > 0 && after > 0) eng.zoom(before / after);
+        eng.pan((p.x - prev.x) / 2, (p.y - prev.y) / 2);
       } else if (ps.size === 1) {
         const from = gesture.moved ? prev : gesture.start;
         if (!gesture.moved && distance(p, from) <= dragThreshold(e.pointerType)) return;
+        if (!gesture.moved) clearHover();
         gesture.moved = true;
         const dx = p.x - from.x;
         const dy = p.y - from.y;
-        eng.cam.yaw -= dx * 0.006;
-        eng.cam.pitch = Math.max(0.12, Math.min(1.45, eng.cam.pitch + dy * 0.005));
+        if (gesture.rotate) eng.rotate(dx, dy);
+        else eng.pan(dx, dy);
       }
       return;
     }
@@ -282,19 +291,16 @@ export function Galaxy({
     if (drag.current) {
       // A gesture with multiple pointers can never select a star on release.
       drag.current.moved = true;
-      drag.current.pinch = undefined;
+      clearHover();
     } else {
-      drag.current = { start: p, moved: false };
+      drag.current = { start: p, moved: false, rotate: rotating || e.shiftKey };
     }
   };
 
   const endPointer = (e: React.PointerEvent) => {
     if (!pointers.current.delete(e.pointerId)) return null;
     const gesture = drag.current;
-    if (pointers.current.size) {
-      if (gesture) gesture.pinch = undefined;
-      return null;
-    }
+    if (pointers.current.size) return null;
     drag.current = null;
     return gesture;
   };
@@ -316,7 +322,8 @@ export function Galaxy({
   const onWheel = (e: React.WheelEvent) => {
     const eng = engine.current;
     if (!eng) return;
-    eng.cam.dist = clampDist(eng.cam.dist * Math.exp(e.deltaY * 0.0012));
+    clearHover();
+    eng.zoom(Math.exp(e.deltaY * 0.0012));
   };
 
   useEffect(() => {
@@ -348,23 +355,26 @@ export function Galaxy({
         onPointerUp={onUp}
         onPointerCancel={endPointer}
         onLostPointerCapture={endPointer}
-        onPointerLeave={() => {
-          if (engine.current) engine.current.hover = -1;
-          setHover(null);
-        }}
+        onPointerLeave={clearHover}
         onWheel={onWheel}
         role="img"
-        aria-label={`词汇星图：${layout.n} 颗星，已点亮 ${lit} 颗。可拖动旋转，用滚轮或双指缩放，点按星星打开词条。`}
+        aria-label={`词汇星图，${layout.n} 颗星，已点亮 ${lit} 颗。可拖动${rotating ? "旋转" : "平移"}，用方向键平移，用滚轮或双指缩放，点按星星打开词条。`}
         tabIndex={0}
         onKeyDown={(e) => {
           const eng = engine.current;
           if (!eng) return;
-          if (e.key === "ArrowLeft") eng.cam.yaw -= 0.12;
-          if (e.key === "ArrowRight") eng.cam.yaw += 0.12;
-          if (e.key === "ArrowUp") eng.cam.pitch = Math.min(1.45, eng.cam.pitch + 0.08);
-          if (e.key === "ArrowDown") eng.cam.pitch = Math.max(0.12, eng.cam.pitch - 0.08);
-          if (e.key === "+" || e.key === "=") eng.cam.dist = clampDist(eng.cam.dist * 0.85);
-          if (e.key === "-") eng.cam.dist = clampDist(eng.cam.dist * 1.18);
+          switch (e.key) {
+            case "ArrowLeft": eng.pan(-48, 0); break;
+            case "ArrowRight": eng.pan(48, 0); break;
+            case "ArrowUp": eng.pan(0, -48); break;
+            case "ArrowDown": eng.pan(0, 48); break;
+            case "+":
+            case "=": eng.zoom(0.85); break;
+            case "-": eng.zoom(1.18); break;
+            default: return;
+          }
+          e.preventDefault();
+          clearHover();
         }}
       />
       <GalaxyFx />
@@ -422,10 +432,10 @@ export function Galaxy({
         </ul>
       </div>
       <div className="galaxy-controls">
-        <button className="icon-btn" onClick={() => engine.current && (engine.current.cam.dist = clampDist(engine.current.cam.dist * 0.8))} aria-label="放大">
+        <button className="icon-btn" onClick={() => engine.current?.zoom(0.8)} aria-label="放大">
           <Plus size={18} />
         </button>
-        <button className="icon-btn" onClick={() => engine.current && (engine.current.cam.dist = clampDist(engine.current.cam.dist * 1.25))} aria-label="缩小">
+        <button className="icon-btn" onClick={() => engine.current?.zoom(1.25)} aria-label="缩小">
           <Minus size={18} />
         </button>
         <button
@@ -433,6 +443,7 @@ export function Galaxy({
           onClick={() => {
             engine.current?.reset();
             engine.current?.replayIntro();
+            setRotating(false);
             if (store.get().settings.sfx) void cue("fly");
           }}
           aria-label="回到全景"
@@ -458,9 +469,13 @@ export function Galaxy({
           <Share2 size={17} />
         </button>
       </div>
-      <p className="galaxy-hint">拖动旋转 · 滚轮或双指缩放 · 点按星星打开词条</p>
+      <div className="galaxy-footer">
+        <div className="galaxy-mode" role="group" aria-label="星图拖动模式">
+          <button type="button" aria-pressed={!rotating} onClick={() => setRotating(false)}><Move size={15} aria-hidden="true" /> 平移</button>
+          <button type="button" aria-pressed={rotating} onClick={() => setRotating(true)}><Orbit size={15} aria-hidden="true" /> 旋转</button>
+        </div>
+        <p className="galaxy-hint">拖动{rotating ? "旋转" : "平移"} · 滚轮或双指缩放 · 点按星星打开词条</p>
+      </div>
     </div>
   );
 }
-
-const clampDist = (d: number) => Math.max(0.35, Math.min(4.2, d));

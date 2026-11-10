@@ -7,12 +7,53 @@
     </view>
     <view wx:if="{{!essays.length}}" class="card muted">本册暂无范文。</view>
   </block>
+  <block wx:elif="{{practicing}}">
+    <text class="title">{{essay.title}}</text>
+    <text class="subtitle">范文默写 · {{essay.versions[index].label}}</text>
+    <view wx:if="{{!result}}" class="card action">
+      <view class="muted">默写所选版本的 {{openings.length}} 段正文。需要时可展开提示。</view>
+      <view class="grid">
+        <button class="small" bindtap="toggleOutline">{{outlineHint ? '收起提纲' : '写作提纲'}}</button>
+        <button class="small" bindtap="toggleOpenings">{{openingHint ? '收起段首' : '段首提示'}}</button>
+      </view>
+      <view wx:if="{{outlineHint}}" class="space">
+        <view wx:for="{{essay.outline}}" wx:key="*this">{{index + 1}}. {{item}}</view>
+      </view>
+      <view wx:if="{{openingHint}}" class="space english">
+        <view wx:for="{{openings}}" wx:key="*this">{{index + 1}}. {{item}}…</view>
+      </view>
+      <textarea class="input essay-draft english" value="{{draft}}" maxlength="{{limit}}" bindinput="inputDraft" placeholder="在这里默写英文正文" />
+      <button class="primary action" bindtap="submitPractice" disabled="{{!canSubmit}}">提交批改</button>
+    </view>
+    <block wx:else>
+      <view class="card action">
+        <view class="label">{{result.correct ? '默写正确' : '还有内容需要核对'}}</view>
+        <view wx:if="{{!result.correct}}" class="muted">按顺序匹配了 {{result.matched}} / {{result.total}} 个参考词。请核对高亮处。</view>
+        <view wx:elif="{{result.formatText}}" class="muted">内容正确，请留意{{result.formatText}}。</view>
+        <view wx:else class="muted">正文与当前版本一致。</view>
+      </view>
+      <view class="card">
+        <view class="label">你的默写</view>
+        <text class="body english"><text wx:for="{{result.draft}}" wx:key="id" class="essay-mark-{{item.mark}}">{{item.text}}</text></text>
+      </view>
+      <view class="card">
+        <view class="label">参考原文</view>
+        <text class="body english"><text wx:for="{{result.reference}}" wx:key="id" class="essay-mark-{{item.mark}}">{{item.text}}</text></text>
+      </view>
+      <view class="grid">
+        <button class="primary" bindtap="editPractice">修改后重交</button>
+        <button bindtap="startPractice">重新默写</button>
+      </view>
+    </block>
+    <button class="action" bindtap="exitPractice">返回范文</button>
+  </block>
   <block wx:else>
     <text class="title">{{essay.title}}</text>
     <text class="subtitle english">{{essay.englishTitle}}</text>
     <view class="grid">
       <button wx:for="{{essay.versions}}" wx:key="label" wx:for-index="v" data-index="{{v}}" bindtap="version" class="{{v === index ? 'active' : ''}}">{{item.label}}</button>
     </view>
+    <button class="primary space" bindtap="startPractice">开始默写</button>
     <view class="card"><text class="body english" wx:for="{{essay.versions[index].paragraphs}}" wx:key="*this">{{item}}</text></view>
     <view wx:if="{{essay.outline.length}}" class="section">写作思路</view>
     <view wx:for="{{essay.outline}}" wx:key="*this" class="card">{{item}}</view>
