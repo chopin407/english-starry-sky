@@ -1,6 +1,6 @@
 import { duck } from "./sound";
 
-let current: HTMLAudioElement | null = null;
+let cancelCurrent: (() => void) | null = null;
 let token = 0;
 
 /* ---------- 录音预先下载 ----------
@@ -33,53 +33,67 @@ export function preloadAudio(url: string | null | undefined) {
 
 export function stopAudio() {
   token++;
-  current?.pause();
-  current = null;
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (!cancelCurrent) return;
+  cancelCurrent();
+  cancelCurrent = null;
+  duck(false);
 }
 
 /** Play a recording, falling back to the device voice. Resolves when playback ends. */
 export async function play(url: string | null | undefined, text: string, accent: "uk" | "us" = "uk", rate = 1) {
+  stopAudio();
+  const mine = token;
   duck(true);
   try {
-    return await speak(url, text, accent, rate);
+    return await speak(url, text, accent, rate, mine);
   } finally {
-    duck(false);
+    if (mine === token) {
+      cancelCurrent = null;
+      duck(false);
+    }
   }
 }
 
-async function speak(url: string | null | undefined, text: string, accent: "uk" | "us", rate: number) {
-  stopAudio();
-  const mine = ++token;
+async function speak(url: string | null | undefined, text: string, accent: "uk" | "us", rate: number, mine: number) {
   if (url) {
     // 已经下载好的直接播（要在点击的同一刻调用 play，手机浏览器才允许出声，所以不能先 await 下载）
     const a = new Audio(ready.get(url) ?? url);
     if (!ready.has(url)) void preloadAudio(url);
     a.playbackRate = rate;
-    current = a;
     try {
-      await a.play();
-      await new Promise<void>((r) => {
-        a.onended = () => r();
-        a.onpause = () => r();
+      return await new Promise<"recorded" | "stopped">((resolve, reject) => {
+        a.onended = () => resolve("recorded");
+        a.onpause = () => resolve(a.ended ? "recorded" : "stopped");
+        a.onerror = reject;
+        cancelCurrent = () => {
+          a.pause();
+          resolve("stopped");
+        };
+        void a.play().catch(reject);
       });
-      return "recorded" as const;
     } catch {
       if (mine !== token) return "stopped" as const;
-      current = null;
+      a.pause();
+      cancelCurrent = null;
+    } finally {
+      a.onended = a.onpause = a.onerror = null;
     }
   }
-  if (!("speechSynthesis" in window)) return "unsupported" as const;
+  const synthesis = window.speechSynthesis;
+  if (!synthesis) return "unsupported" as const;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = accent === "uk" ? "en-GB" : "en-US";
   u.rate = rate * 0.95;
-  const voices = speechSynthesis.getVoices().filter((v) => v.lang.replace("_", "-") === u.lang);
+  const voices = synthesis.getVoices().filter((v) => v.lang.replace("_", "-") === u.lang);
   const best = voices.find((v) => /premium|enhanced|natural|google/i.test(v.name)) || voices[0];
   if (best) u.voice = best;
-  await new Promise<void>((r) => {
-    u.onend = () => r();
-    u.onerror = () => r();
-    speechSynthesis.speak(u);
+  return new Promise<"device" | "unsupported" | "stopped">((resolve) => {
+    u.onend = () => resolve("device");
+    u.onerror = () => resolve("unsupported");
+    cancelCurrent = () => {
+      resolve("stopped");
+      synthesis.cancel();
+    };
+    synthesis.speak(u);
   });
-  return "device" as const;
 }

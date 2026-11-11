@@ -5,7 +5,7 @@
     { "root": "reading", "pages": ["index", "article"] }
   ],
   "window": {
-    "navigationBarTitleText": "英语星空",
+    "navigationBarTitleText": "英语星野",
     "navigationBarBackgroundColor": "#121831",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#121831"

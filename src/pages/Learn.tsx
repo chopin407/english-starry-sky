@@ -7,7 +7,8 @@ import { burst } from "../lib/burst";
 import { cue } from "../lib/sound";
 import { go, type Route } from "../lib/router";
 import { gap, normalize } from "../lib/text";
-import { answer, advance, buildSession, gradeFor, journeyProgress, sessionFor, sessionStats, withSession } from "../store/session";
+import { EXTENSION_UNIT } from "../lib/unit";
+import { answer, advance, buildSession, gradeFor, journeyProgress, sessionFor, sessionStats, shortFollowUp, withSession } from "../store/session";
 import { formatInterval, Rating } from "../store/srs";
 import { store, useStore, type ActiveSession, type QuizKind, type Step } from "../store/store";
 import { EntryView, Highlight } from "../ui/EntryView";
@@ -49,7 +50,16 @@ export function Learn() {
     };
   }, [atlas, ids]);
 
-  useEffect(() => () => stopAudio(), []);
+  useEffect(() => {
+    const stopWhenHidden = () => {
+      if (document.visibilityState === "hidden") stopAudio();
+    };
+    document.addEventListener("visibilitychange", stopWhenHidden);
+    return () => {
+      document.removeEventListener("visibilitychange", stopWhenHidden);
+      stopAudio();
+    };
+  }, []);
 
   if (!session || !ready) return <div className="learn learn-loading"><span className="spinner" /></div>;
   if (session.finished || session.index >= session.steps.length) return <Summary session={session} />;
@@ -105,7 +115,9 @@ function Intro({ step }: { step: Step }) {
   const settings = useStore((s) => s.settings);
   const elapsed = useStepTimer();
   useEffect(() => {
-    if (entry && settings.autoplay) void play(atlas.audio(entry, settings.accent), entry.w, settings.accent);
+    if (entry && settings.autoplay && document.visibilityState === "visible") {
+      void play(atlas.audio(entry, settings.accent), entry.w, settings.accent);
+    }
   }, [entry, atlas, settings.autoplay, settings.accent]);
   const next = useCallback(() => {
     stopAudio();
@@ -144,12 +156,28 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
   const ref = atlas.byId.get(step.id)!;
   const { entry } = useEntry(step.id);
   const settings = useStore((s) => s.settings);
+  const accent = settings.accent;
   const pending = session.pending;
   const guidedChoice = step.guided && step.kind !== "spell";
   const elapsed = useStepTimer();
-  // 答题后读单词的那次播放：答对时等它读完再开始倒数
+  const pronunciation = useRef<{ accent: typeof accent; done: ReturnType<typeof play>; failed: boolean } | null>(null);
+  // 答对后等本题的发音播完，再进入下一题。
   const spoken = useRef<Promise<unknown> | null>(null);
   const options = useMemo(() => (step.options ?? []).map((id) => atlas.byId.get(id)!).filter(Boolean), [atlas, step.options]);
+
+  const pronounce = useCallback((rate = 1, replay = false) => {
+    if (!entry || document.visibilityState !== "visible") return null;
+    const previous = pronunciation.current;
+    if (!replay && previous?.accent === accent && !previous.failed) return previous.done;
+
+    const attempt = { accent, done: play(atlas.audio(entry, accent), entry.w, accent, rate), failed: false };
+    pronunciation.current = attempt;
+    void attempt.done.then((result) => {
+      attempt.failed = result === "stopped" || result === "unsupported";
+    });
+    return attempt.done;
+  }, [entry, atlas, accent]);
+  const replay = () => pronounce(1, true);
 
   const submit = useCallback(
     (value: string, correct: boolean, usedHint = false) => {
@@ -162,9 +190,9 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
       }
       if (settings.sfx) void cue(correct ? "correct" : "wrong");
       answer(atlas, step, correct, gradeFor(step.kind, correct, ms, usedHint), value, usedHint);
-      spoken.current = entry ? play(atlas.audio(entry, settings.accent), entry.w, settings.accent) : null;
+      spoken.current = pronounce();
     },
-    [pending, elapsed, settings, atlas, step, entry],
+    [pending, elapsed, settings.sfx, atlas, step, pronounce],
   );
 
   const next = useCallback(() => {
@@ -175,8 +203,8 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
   // 出题时读单词：听音题一定读；「什么意思」「拼写」题在开了自动发音时也读；看图补句不读（一读就把答案说出来了）
   useEffect(() => {
     const say = step.kind === "listen" || (settings.autoplay && (step.kind === "meaning" || step.kind === "spell"));
-    if (say && entry && !pending) void play(atlas.audio(entry, settings.accent), entry.w, settings.accent);
-  }, [step.kind, entry, atlas, settings.accent, settings.autoplay, pending]);
+    if (say && !pending) void pronounce();
+  }, [step.kind, settings.autoplay, pending, pronounce]);
 
   const keys: Record<string, () => void> = {};
   if (pending) {
@@ -205,12 +233,12 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
             <h2 className="headword" lang="en">
               {entry.w}
             </h2>
-            <Speak url={atlas.audio(entry, settings.accent)} text={entry.w} accent={settings.accent} label={<span className="ipa">{settings.accent === "us" ? entry.us || entry.uk : entry.uk || entry.us}</span>} />
+            <Speak url={atlas.audio(entry, accent)} text={entry.w} accent={accent} onPlay={replay} label={<span className="ipa">{accent === "us" ? entry.us || entry.uk : entry.uk || entry.us}</span>} />
           </div>
         )}
         {step.kind === "picture" && (
           <div className="prompt-picture">
-            <Illustration src={atlas.img(entry)} word={entry.w} topic={ref.topic} eager />
+            <Illustration src={atlas.img(entry)} word={entry.w} topic={ref.topic} eager hideWord />
             <p className="cloze" lang="en">
               {sentence ? (
                 <>
@@ -227,16 +255,16 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
         )}
         {step.kind === "listen" && (
           <div className="prompt-listen">
-            <button className="listen-orb" onClick={() => play(atlas.audio(entry, settings.accent), entry.w, settings.accent)} aria-label="再听一遍">
+            <button className="listen-orb" onClick={replay} aria-label="再听一遍">
               <Volume2 size={40} strokeWidth={1.6} />
               <span />
             </button>
-            <button className="link" onClick={() => play(atlas.audio(entry, settings.accent), entry.w, settings.accent, 0.7)}>
+            <button className="link" onClick={() => pronounce(0.7, true)}>
               慢速再听
             </button>
           </div>
         )}
-        {step.kind === "spell" && <SpellPrompt entry={entry} refw={ref} />}
+        {step.kind === "spell" && <SpellPrompt entry={entry} refw={ref} accent={accent} onPlay={replay} />}
       </section>
 
       {step.kind === "spell" ? (
@@ -267,13 +295,14 @@ function Quiz({ step, session }: { step: Step & { kind: QuizKind }; session: Act
   );
 }
 
-function SpellPrompt({ entry, refw }: { entry: Entry; refw: WordRef }) {
+function SpellPrompt({ entry, refw, accent, onPlay }: {
+  entry: Entry; refw: WordRef; accent: "uk" | "us"; onPlay: () => ReturnType<typeof play> | null;
+}) {
   const atlas = useAtlas();
-  const accent = useStore((s) => s.settings.accent);
   const sentence = entry.ex[0] ? gap(entry.ex[0].en, entry.w) : null;
   return (
     <div className="prompt-spell">
-      <Illustration src={atlas.img(entry)} word={entry.w} topic={refw.topic} eager className="spell-art" />
+      <Illustration src={atlas.img(entry)} word={entry.w} topic={refw.topic} eager hideWord className="spell-art" />
       <div>
         <p className="spell-zh">
           <span className="pos">{entry.senses[0].pos}</span> {entry.senses[0].zh}
@@ -285,7 +314,7 @@ function SpellPrompt({ entry, refw }: { entry: Entry; refw: WordRef }) {
             {sentence.after}
           </p>
         )}
-        <Speak url={atlas.audio(entry, accent)} text={entry.w} accent={accent} size="sm" label="听发音" />
+        <Speak url={atlas.audio(entry, accent)} text={entry.w} accent={accent} onPlay={onPlay} size="sm" label="听发音" />
       </div>
     </div>
   );
@@ -350,8 +379,10 @@ function Feedback({ entry, refw, correct, spelling, onNext, spoken }: {
 
 function Summary({ session }: { session: ActiveSession }) {
   const atlas = useAtlas();
-  const cards = useStore((s) => s.progress.cards);
-  const challenge = useStore((s) => s.settings.challenge);
+  const progress = useStore((s) => s.progress);
+  const settings = useStore((s) => s.settings);
+  const cards = progress.cards;
+  const followUp = shortFollowUp(atlas, progress, settings, session);
   useEffect(() => {
     if (store.get().settings.sfx) void cue("complete");
   }, []);
@@ -373,6 +404,17 @@ function Summary({ session }: { session: ActiveSession }) {
   const again = () => {
     const { progress, settings } = store.get();
     store.progress((p) => withSession(atlas, p, buildSession(atlas, progress, settings, { ids: wrong.map((w) => w.id) })));
+  };
+  const startFollowUp = () => {
+    const { progress, settings } = store.get();
+    if (sessionFor(atlas, progress)?.id !== session.id) return;
+    const task = shortFollowUp(atlas, progress, settings, session);
+    if (!task) return;
+    const nextSession = buildSession(atlas, progress, settings, task.options);
+    if (!nextSession.steps.length) return;
+    window.scrollTo({ top: 0 });
+    if (settings.sfx) void cue("start");
+    store.progress((p) => withSession(atlas, p, nextSession));
   };
   return (
     <div className="learn summary">
@@ -419,9 +461,23 @@ function Summary({ session }: { session: ActiveSession }) {
                 {nextIn > 0 ? `，约 ${formatInterval(nextIn)}后到期` : "，已经到期"}。
               </p>
             )}
+            {followUp && (
+              <>
+                <div className="summary-actions">
+                  <button className="btn btn-primary btn-xl" onClick={startFollowUp} ref={(b) => b?.focus({ preventScroll: true })}>
+                    {followUp.kind === "short" ? "开始下一轮短任务" : "开始巩固练习"} <ArrowRight size={20} />
+                  </button>
+                </div>
+                <p className="muted">
+                  {followUp.kind === "short"
+                    ? [followUp.due && `复习 ${followUp.due} 个到期词`, followUp.fresh && `学习 ${followUp.fresh} 个新词`].filter(Boolean).join("，")
+                    : `再练 ${followUp.options.ids.length} 个刚学过或复习过的词`}
+                </p>
+              </>
+            )}
             <div className="summary-actions">
-              <button className="btn btn-ghost btn-sm" onClick={() => done({ page: "practice" })}>{challenge ? "去练阅读" : "去听写"}</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => done({ page: "points", unit: practicedUnit, sec: "points" })}>练课本考点</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => done({ page: "practice" })}>{settings.challenge ? "去练阅读" : "去听写"}</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => done({ page: "points", unit: practicedUnit === EXTENSION_UNIT ? undefined : practicedUnit, sec: "points" })}>练课本考点</button>
               {atlas.book === "7a" && <button className="btn btn-ghost btn-sm" onClick={() => done({ page: "essays", book: "7a" })}>范文默写</button>}
             </div>
           </section>
@@ -445,8 +501,8 @@ function Summary({ session }: { session: ActiveSession }) {
           <button className="btn btn-ghost" onClick={() => shareSession(atlas, session)}>
             <Share2 size={18} /> 分享成绩卡
           </button>
-          <button className="btn btn-primary btn-xl" onClick={() => done()} ref={(b) => b?.focus({ preventScroll: true })}>
-            完成 <ArrowRight size={20} />
+          <button className={followUp ? "btn btn-ghost btn-xl" : "btn btn-primary btn-xl"} onClick={() => done()} ref={followUp ? undefined : (b) => b?.focus({ preventScroll: true })}>
+            {followUp ? "结束学习" : "完成"} <ArrowRight size={20} />
           </button>
         </div>
       </div>

@@ -11,6 +11,7 @@ export function Speak({
   rate = 1,
   className = "",
   kbd,
+  onPlay,
 }: {
   url: string | null;
   text: string;
@@ -20,6 +21,7 @@ export function Speak({
   rate?: number;
   className?: string;
   kbd?: string;
+  onPlay?: () => ReturnType<typeof play> | null;
 }) {
   const [on, setOn] = useState(false);
   // 按钮一出现就把录音下载好，点的时候立刻出声
@@ -28,7 +30,7 @@ export function Speak({
     e.stopPropagation();
     setOn(true);
     try {
-      await play(url, text, accent, rate);
+      await (onPlay ? onPlay() : play(url, text, accent, rate));
     } finally {
       setOn(false);
     }

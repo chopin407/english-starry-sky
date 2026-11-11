@@ -306,7 +306,7 @@ export function Splash({ onDone }: { onDone: () => void }) {
       className={`splash is-${phase} ${reduce ? "is-reduced" : ""}`}
       onClick={() => open()}
       role="dialog"
-      aria-label="欢迎来到英语星空，点击进入"
+      aria-label="欢迎来到英语星野，点击进入"
     >
       <div className="door door-l" />
       <div className="door door-r" />
@@ -333,7 +333,7 @@ export function Splash({ onDone }: { onDone: () => void }) {
         </div>
       )}
       <div className="splash-copy">
-        <p className="splash-tag">欢迎来到英语星空</p>
+        <p className="splash-tag">欢迎来到英语星野</p>
         <p className="splash-hint">
           <span className="splash-key" />
           点击开启 · 按任意键

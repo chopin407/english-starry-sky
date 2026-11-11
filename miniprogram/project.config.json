@@ -1,5 +1,5 @@
 {
-  "appid": "touristappid",
+  "appid": "wx367480625132e4ad",
   "projectname": "english-starry-sky",
   "compileType": "miniprogram",
   "miniprogramRoot": "app/",
@@ -9,6 +9,29 @@
     "minified": true,
     "ignoreDevUnusedFiles": false,
     "ignoreUploadUnusedFiles": false,
-    "urlCheck": true
-  }
+    "urlCheck": true,
+    "postcss": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
 }

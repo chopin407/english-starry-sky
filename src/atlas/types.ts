@@ -34,7 +34,7 @@ export interface Entry {
   note?: string;
   /** Media bit flags, see MEDIA. */
   m: number;
-  /** 课本页码、是否课标重点词、所属单元 id（英语星空） */
+  /** 课本页码、是否课标重点词、所属单元 id（英语星野） */
   page?: number;
   key?: boolean;
   unit?: string;

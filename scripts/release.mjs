@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { readMiniprogramConfig } from "./miniprogram-config.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(import.meta.url);
@@ -60,15 +61,25 @@ async function main() {
   const { version } = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
   const build = new Date().toISOString().replace(/\D/g, "");
   const env = { ...process.env, ENGLISH_GALAXY_BUILD: build };
-  const desc = values.desc || "英语星空 " + version + " (" + build + ")";
-  const appid = env.MINIPROGRAM_APPID?.trim();
-  let ci, privateKeyPath, wrangler;
+  const desc = values.desc || "英语星野 " + version + " (" + build + ")";
+  let ci, appid, privateKeyPath, wrangler;
 
   if (values.publish && mini) {
-    if (!/^wx[0-9a-f]{16}$/i.test(appid || "")) throw new Error("请设置有效的 MINIPROGRAM_APPID。");
-    if (!env.MINIPROGRAM_PRIVATE_KEY_PATH?.trim()) throw new Error("请设置 MINIPROGRAM_PRIVATE_KEY_PATH。");
-    privateKeyPath = resolve(env.MINIPROGRAM_PRIVATE_KEY_PATH);
-    if (!(await stat(privateKeyPath)).isFile()) throw new Error("上传密钥路径必须指向文件。");
+    const config = await readMiniprogramConfig();
+    appid = config.appid;
+    if (!/^wx[0-9a-f]{16}$/i.test(appid)) {
+      throw new Error("请在 miniprogram.config.local.json 中设置有效的 appid，或设置 MINIPROGRAM_APPID。");
+    }
+    if (!config.privateKeyPath) {
+      throw new Error("请在 miniprogram.config.local.json 中填写 privateKeyPath，或设置 MINIPROGRAM_PRIVATE_KEY_PATH。");
+    }
+    privateKeyPath = resolve(root, config.privateKeyPath);
+    const keyFile = await stat(privateKeyPath).catch((error) => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    if (!keyFile?.isFile()) {
+      throw new Error("上传密钥路径必须指向现有文件，请检查 privateKeyPath。");
+    }
     try { ci = require("miniprogram-ci"); }
     catch (error) {
       if (error.code !== "MODULE_NOT_FOUND") throw error;
@@ -88,7 +99,7 @@ async function main() {
 
   const powershell = process.platform === "win32" ? "powershell.exe" : "pwsh";
   const lanScript = ["-NoProfile", "-File", join(root, "scripts/deploy-lan.ps1")];
-  console.log("英语星空 " + version + " · 构建 " + build);
+  console.log("英语星野 " + version + " · 构建 " + build);
   if (mini) npm(["run", "test:mini"], env);
   if (web) {
     if (lan) run("构建 Web 局域网发布包", powershell, [...lanScript, "-BuildOnly"], env);

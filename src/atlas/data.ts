@@ -7,6 +7,7 @@ const atlasUrl = (book: string) => (p: string) => `${BASE}/atlas/${book === "7a"
 
 interface IndexFile {
   id: string;
+  version?: number;
   name: string;
   count: number;
   examples: number;
@@ -22,6 +23,7 @@ export async function loadOpenAtlas(book = "7a"): Promise<Atlas> {
   const res = await fetch(url("index.json"));
   if (!res.ok) throw new Error(`词库索引加载失败（${res.status}）`);
   const idx = (await res.json()) as IndexFile;
+  const version = idx.version && idx.version > 1 ? `?v=${idx.version}` : "";
   const words: WordRef[] = idx.words.map((r, order) => ({
     id: r[0],
     word: r[1],
@@ -39,7 +41,7 @@ export async function loadOpenAtlas(book = "7a"): Promise<Atlas> {
   const loadChunk = (n: number) => {
     let p = pending.get(n);
     if (!p) {
-      p = fetch(url(`entries/${n}.json`))
+      p = fetch(url(`entries/${n}.json${version}`))
         .then((r) => {
           if (!r.ok) throw new Error(`词条加载失败（${r.status}）`);
           return r.json() as Promise<Entry[]>;
@@ -79,14 +81,15 @@ export async function loadOpenAtlas(book = "7a"): Promise<Atlas> {
     },
     img: (ref, size = "full") =>
       ("media" in ref && typeof ref.media === "number" ? ref.media : (ref as Entry).m) & MEDIA.img
-        ? url(`${size === "thumb" ? "thumb" : "img"}/${ref.id}.webp`)
+        ? url(`${size === "thumb" ? "thumb" : "img"}/${ref.id}.webp${version}`)
         : null,
     audio(ref, kind) {
       const m = "media" in ref && typeof ref.media === "number" ? ref.media : (ref as Entry).m;
       const bit = MEDIA[kind];
       if (m & bit) return url(`audio/${kind}/${ref.id}.mp3`);
-      // 没有美音的词，用课本原声
-      return kind === "us" && m & MEDIA.uk ? url(`audio/uk/${ref.id}.mp3`) : null;
+      if (kind === "us" && m & MEDIA.uk) return url(`audio/uk/${ref.id}.mp3`);
+      if (kind === "uk" && m & MEDIA.us) return url(`audio/us/${ref.id}.mp3`);
+      return null;
     },
   };
 }

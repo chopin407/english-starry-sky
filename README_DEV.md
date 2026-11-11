@@ -24,24 +24,57 @@ npm run release -- --help
 
 更新教材时继续改 `public/atlas/`、`public/data/` 或 `src/data/essays/` 的源文件；小程序构建会自动生成 `_generated/`，不要直接编辑产物。两端共用册数配置、FSRS 调度、到期排序、听写和语法判分，页面分别由 React 与原生 WXML 实现。统一构建从 `package.json` 读取版本号，并给两个产物写入同一个构建号。小程序包大小检查使用每包 2 MiB 的项目预算。
 
-### 全量图片和录音
+### 小程序本地配置
 
-用现有 Web 站点或同一批 `public/` 资源的 HTTPS 托管地址。该地址下应能直接打开 `atlas/index.json`、`lessons/7a/starter-unit-1-a-2c.mp3` 等文件，课文录音服务器应支持分段请求。请把资源域名配置到小程序的 [服务器域名设置](https://intl.cloud.tencent.com/zh/document/product/1219/61745?lang=zh)，并用真机验证词卡发音、课文点读和试题配图。
+如果项目根目录还没有 `miniprogram.config.local.json`，先从模板复制一份。
 
 ```powershell
-$env:MINIPROGRAM_MEDIA_BASE = 'https://english.example.com'
-npm run build:all
+Copy-Item miniprogram.config.example.json miniprogram.config.local.json
+```
+
+| 字段 | 用途 |
+| --- | --- |
+| `appid` | 微信小程序的 AppID，上传时使用 |
+| `privateKeyPath` | 仓库外的微信上传密钥文件路径，上传时使用。Windows 可写成 `C:/密钥目录/private.wx....key` |
+| `mediaBase` | 图片和录音的 HTTPS 地址，构建时使用。留空时使用随包提供的示例素材 |
+
+构建和发布命令会自动读取本地配置，Git 会忽略该文件。CI 或临时构建仍可通过 `MINIPROGRAM_APPID`、`MINIPROGRAM_PRIVATE_KEY_PATH`、`MINIPROGRAM_MEDIA_BASE` 覆盖对应字段。
+
+### 全量图片和录音
+
+将现有 Web 站点或同一批 `public/` 资源的 HTTPS 托管地址填入 `mediaBase`，然后运行 `npm run build:mini` 或 `npm run build:all`。该地址下应能直接打开 `atlas/index.json`、`lessons/7a/starter-unit-1-a-2c.mp3` 等文件，课文录音服务器应支持分段请求。请把资源域名配置到小程序的 [服务器域名设置](https://intl.cloud.tencent.com/zh/document/product/1219/61745?lang=zh)，并用真机验证词卡发音、课文点读和试题配图。
+
+#### 单独上传到 Nginx 站点的 `/public/`
+
+首次在 Nginx 服务器上用上传账号登录，创建专用目录，再把 `build/engstart.conf` 中的 `location ^~ /public/` 段加到站点配置。已有的首页和 API 继续走原来的代理。
+
+```bash
+sudo install -d -m 0755 -o "$(id -un)" /var/www/english-starry-sky-media
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+在本机项目根目录运行。把 `ubuntu@your-server` 换成 Nginx 服务器的 SSH 登录地址或主机别名。
+
+```powershell
+npm run media:upload
+npm run media:upload -- --upload --ssh-target=ubuntu@your-server
+```
+
+本机需要 Node.js、`tar` 和 OpenSSH。脚本上传 `public/atlas/`、`public/lessons/`、`public/reading/`，保持目录结构，解包和检查完成后切换 `current`。每次全量上传会保留独立的 `release.*` 目录。确认新版可用后，可在服务器上清理不再使用的旧目录。若用 `--remote-dir` 自定义目录，Nginx 的 `alias` 也要指向同一目录的 `current/`。
+
+`eng.xaicloud.net` 对应的 `mediaBase` 为 `https://eng.xaicloud.net/public`。上传后可在 PowerShell 检查课文录音是否返回 `206 Partial Content`，再构建小程序。
+
+```powershell
+curl.exe -fsS -r 0-1 -D - -o NUL 'https://eng.xaicloud.net/public/lessons/7a/starter-unit-1-a-2c.mp3'
+npm run build:mini
 ```
 
 ### 从同一构建部署两端
 
-首次配置时，将上传密钥放在仓库外，在 [微信公众平台配置代码上传密钥和 IP 白名单](https://github.com/wechat-miniprogram/miniprogram-ci-dist#readme)，并在本机安装发布工具。Cloudflare Web 发布使用仓库现有的 `wrangler.jsonc`；可先用 Wrangler 登录，CI 可使用相应的 Cloudflare 凭据。
+首次发布前，填写小程序本地配置，在 [微信公众平台配置代码上传密钥和 IP 白名单](https://github.com/wechat-miniprogram/miniprogram-ci-dist#readme)，并在本机安装发布工具。Cloudflare Web 发布使用仓库现有的 `wrangler.jsonc`；可先用 Wrangler 登录，CI 可使用相应的 Cloudflare 凭据。
 
 ```powershell
 npm install --no-save --package-lock=false miniprogram-ci wrangler
-$env:MINIPROGRAM_APPID = '你的真实 AppID'
-$env:MINIPROGRAM_PRIVATE_KEY_PATH = 'C:\密钥目录\private.wx....key'
-$env:MINIPROGRAM_MEDIA_BASE = 'https://english.example.com'
 npm run release -- --publish --desc '本次更新说明'
 ```
 
@@ -132,6 +165,9 @@ uv pip install --python "$root/.sync-venv/bin/python" 'PyMySQL[rsa]>=1.1,<2'
 - 单词发音：课本原声。
 - 单词卡例句（`scripts/examples7a.json`，课本句 + 中考句，老师可直接改文字）和考点朗读：微软神经网络英音（Sonia、Ryan、Libby 三个声音轮流，对话句每行换人），见 `scripts/neural_tts.py`。需要 Python 3.12 的 `edge-tts`，用环境变量 `EDGE_TTS` 指定它的路径。
 - 改了例句后：`python3 scripts/build_example_audio.py <ffmpeg路径>`，再 `python3 scripts/build_atlas.py <ffmpeg路径>`；只会重录改过的句子。
+- 七上拓展词维护在 `scripts/vocab-7a-extension.tsv`。修改词表或重建七上课本图鉴后，运行 `python scripts/import_7a_extension.py G:/opensoure/word-atlas` 导入词条和本地素材，路径可换成自己的词光项目目录。
+- 拓展词缺图时，为词义绘制无文字的场景图，按词条 ID 将 512 × 512 和 256 × 256 WebP 放进 `public/atlas/img/` 和 `public/atlas/thumb/`。插画提示词见 `scripts/7a-extension-illustrations.tsv`。保留已有词光素材。
+- 在 Windows 的 PowerShell 7 中运行 `./scripts/build_7a_extension_audio.ps1`，用系统英文语音和 ffmpeg 补齐缺失的词头、首条例句 MP3。生成后重跑拓展词导入脚本，更新图片和录音索引。
 - 改了考点题目后：`python3 scripts/build_points_audio.py <ffmpeg路径>`，只补录新句子；改过的句子要先删掉 `public/audio/points/` 里对应的 mp3。
 
 ## 环境音乐

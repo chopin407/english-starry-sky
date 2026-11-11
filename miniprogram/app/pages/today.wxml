@@ -4,7 +4,7 @@
     <view class="hero-copy">
       <text class="eyebrow">ENGLISH GALAXY</text>
       <text class="title">课本的词，一颗颗点亮</text>
-      <text class="subtitle">每天一点，连成你的英语星空。</text>
+      <text class="subtitle">每天一点，连成你的英语星野。</text>
       <button class="small action" bindtap="chooseBook">{{book}} ▾</button>
     </view>
   </view>

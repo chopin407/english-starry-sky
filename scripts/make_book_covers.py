@@ -17,7 +17,7 @@ BOOKS = [("7a", "七年级", "上册", "#2E5E8C", "#E3B65A"), ("7b", "七年级"
 
 
 def cover(grade, term, main, accent):
-    stars = "".join(
+    stars = "".join(    
         f'<circle cx="{(i * 97) % W}" cy="{(i * 53) % 330 + 20}" r="{1 + i % 3 * 0.6}" fill="#fff" opacity="{0.35 + (i % 4) * 0.15}"/>'
         for i in range(1, 40))
     return f'''<div style="position:relative;float:left;width:{W}px;height:{H}px;overflow:hidden;background:{main}">
@@ -26,7 +26,7 @@ def cover(grade, term, main, accent):
 <path d="M0 470 Q120 400 240 450 T480 430 V678 H0Z" fill="#fff" opacity=".10"/>
 <path d="M0 520 Q140 470 260 510 T480 500 V678 H0Z" fill="#fff" opacity=".14"/></svg>
 <div style="position:absolute;left:40px;top:150px;color:#fff;font-family:'Songti SC','STSong',serif">
-<div style="font-size:26px;letter-spacing:.3em;opacity:.85">英语星空</div>
+<div style="font-size:26px;letter-spacing:.3em;opacity:.85">英语星野</div>
 <div style="font-size:88px;font-weight:700;line-height:1.1;margin-top:18px">英语</div>
 <div style="font-size:18px;letter-spacing:.35em;opacity:.8;font-family:Georgia,serif">ENGLISH</div></div>
 <div style="position:absolute;left:40px;bottom:70px;color:#fff;font-family:'Songti SC','STSong',serif">

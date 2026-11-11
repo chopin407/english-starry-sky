@@ -427,7 +427,7 @@ function LevelPath() {
   return (
     <section className="panel path-panel">
       <div className="panel-head">
-        <h3 className="eyebrow">学习路线 · 课本单元</h3>
+        <h3 className="eyebrow">学习路线</h3>
         <span className="legend">
           <i className="lg-seen" /> 已学 <i className="lg-done" /> 已掌握
         </span>

@@ -29,9 +29,12 @@ function page(route) {
 }
 const event = (dataset = {}) => ({ currentTarget: { dataset } });
 
-test("registered pages load and their templates reference existing handlers", () => {
+test("registered pages have valid JSON, load, and reference existing handlers", () => {
   const routes = [...config.pages, ...config.subPackages.flatMap(({ root, pages }) => pages.map((p) => root + "/" + p))];
   for (const route of routes) {
+    const jsonPath = join(root, route + ".json");
+    const pageConfig = JSON.parse(readFileSync(jsonPath, "utf8"));
+    assert.ok(pageConfig && typeof pageConfig === "object" && !Array.isArray(pageConfig), route + ".json must be an object");
     const instance = page(route);
     const template = readFileSync(join(root, route + ".wxml"), "utf8");
     for (const [, handler] of template.matchAll(/\b(?:bind|catch)\w+="([\w]+)"/g)) {

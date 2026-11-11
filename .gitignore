@@ -3,6 +3,7 @@ dist
 .wrangler
 .env*
 !.env.example
+/miniprogram.config.local.json
 cloudbaserc.json
 *.tsbuildinfo
 __pycache__

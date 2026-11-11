@@ -37,7 +37,7 @@ export function About() {
             <span className="nowrap">一个一个点亮。</span>
           </h1>
           <p className="lede">
-            人教版和外研版《英语》各册单元词表里的 {total.toLocaleString()} 个词条（不含人名），配有课本原声、词义和例句。课本页按单元整理了原声录音、课文点读和语法句型练习，部分册次另有河南中考真题提示。
+            人教版和外研版《英语》各册的课本词和拓展词共 {total.toLocaleString()} 个词条（不含人名），配有发音、词义和例句。课本页按单元整理了原声录音、课文点读和语法句型练习，部分册次另有河南中考真题提示。
           </p>
           <p className="lede">用自己的名字和密码登录，学习进度自动保存到云端，换手机也能接着学。</p>
           {grades.size > 1 && (
@@ -172,16 +172,16 @@ export function About() {
           <p className="muted">人教版教材词表、课文和配套录音的版权归人民教育出版社，经出版社同意用于非营利教学，禁止商用。外研版九年级上册的教材内容版权归外语教学与研究出版社。</p>
           <p className="muted">例句优先用课本原句，另一句选自河南中考真题和模拟卷；找不到合适原句的，标着「改编」或「拓展」。</p>
           <p className="muted">
-            插画大部分由老师制作，另有一部分和美音、界面代码来自开源项目「词光 Word Atlas」（代码 MIT，词库与插画 CC BY 4.0，署名 Word Atlas contributors）。词光的插画和课本词义对不上的，已经去掉了。还没画好插画的词，先用 Google Noto Emoji（Apache 2.0）拼的补位图，老师的新图画好后会替换。
+            插画大部分由老师制作，部分插画、录音、例句和界面代码来自开源项目「词光 Word Atlas」（代码 MIT，词库、插画及录音 CC BY 4.0，署名 Word Atlas contributors）。词光的插画和课本词义对不上的，已经去掉了。还没画好插画的词，先用 Google Noto Emoji（Apache 2.0）拼的补位图，老师的新图画好后会替换。
           </p>
           <a className="link" href={REPO_URL} target="_blank" rel="noreferrer">
             词光 Word Atlas 开源项目 <ArrowUpRight size={14} />
           </a>
           <a className="link" href={SOURCE_URL} target="_blank" rel="noreferrer">
-            英语星空原版的源代码（GitHub） <ArrowUpRight size={14} />
+            英语星空的源代码（GitHub） <ArrowUpRight size={14} />
           </a>
           <a className="link" href={CUR_CUR_SOURCE_URL} target="_blank" rel="noreferrer">
-            英语星空（新版）的源代码（GitHub） <ArrowUpRight size={14} />
+            英语星野的源代码（GitHub） <ArrowUpRight size={14} />
           </a>
         </section>
       </div>

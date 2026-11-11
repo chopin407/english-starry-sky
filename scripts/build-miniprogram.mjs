@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { BOOKS } from "../src/lib/bookCatalog.ts";
 import essays7a from "../src/data/essays/7a.ts";
 import essaysFltrp9a from "../src/data/essays/fltrp9a.ts";
+import { readMiniprogramConfig } from "./miniprogram-config.mjs";
 
 const { build } = createRequire(import.meta.resolve("vite"))("esbuild");
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -26,11 +27,12 @@ const copy = async (source, output) => {
   copied.add(dest);
 };
 
-const mediaBase = process.env.MINIPROGRAM_MEDIA_BASE?.trim().replace(/\/+$/, "") || "";
+const config = await readMiniprogramConfig();
+const mediaBase = config.mediaBase.replace(/\/+$/, "");
 if (mediaBase) {
-  const url = new URL(mediaBase);
-  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) {
-    throw new Error("MINIPROGRAM_MEDIA_BASE 必须是 HTTPS 静态资源地址，不含账号、查询参数或锚点");
+  const url = URL.canParse(mediaBase) ? new URL(mediaBase) : null;
+  if (!url || url.protocol !== "https:" || url.username || url.password || url.search || url.hash) {
+    throw new Error("miniprogram.config.local.json 的 mediaBase（或 MINIPROGRAM_MEDIA_BASE）必须是 HTTPS 静态资源地址，不含账号、查询参数或锚点。");
   }
 }
 

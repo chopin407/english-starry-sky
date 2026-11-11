@@ -41,7 +41,7 @@ export async function shareGalaxy(source: HTMLCanvasElement, lit: number, total:
     g.fillRect(pad, H - 66, W - pad * 2, 1);
     g.fillStyle = "#f3ecdf";
     g.font = `600 30px ${SERIF}`;
-    g.fillText("英语星空", pad, H - 26);
+    g.fillText("英语星野", pad, H - 26);
     g.font = `400 24px ${SANS}`;
     g.fillStyle = "rgba(243,236,223,.55)";
     const tag = bookTag();

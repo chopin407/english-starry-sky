@@ -17,13 +17,13 @@
 - 真题阅读馆的答案和解析；
 - 冷知识卡、宝箱和徽章的文字。
 
-**署名：** `英语星空 English Galaxy（https://github.com/wenchester8-droid/english-starry-sky）`，并注明是否做过修改。
+**署名：** `英语星野 English Galaxy（https://github.com/wenchester8-droid/english-starry-sky）`，并注明是否做过修改。
 
 例句和考点朗读由微软神经网络语音（通过 edge-tts）生成。
 
 ## 3. 来自词光 Word Atlas 的内容：CC BY 4.0
 
-一部分单词的插画、美式发音和例句来自开源词库 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)，授权为 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，署名 `Word Atlas contributors`。和课本词义对不上的已经去掉，部分做过修改。
+一部分单词的插画、英式和美式发音、例句及例句录音来自开源词库 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)，授权为 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，署名 `Word Atlas contributors`。和课本词义对不上的已经去掉，部分做过修改。
 
 ## 4. 人教版教材内容：版权归人民教育出版社
 

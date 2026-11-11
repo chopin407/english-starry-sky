@@ -3,6 +3,7 @@ import type { Entry, WordRef } from "../atlas/types";
 import { MEDIA } from "../atlas/types";
 import { useAtlas } from "../atlas/context";
 import { splitHighlight, splitPair } from "../lib/text";
+import { EXTENSION_UNIT } from "../lib/unit";
 import { formatInterval, isMastered } from "../store/srs";
 import { toggleBookmark, useStore } from "../store/store";
 import { Illustration } from "./Illustration";
@@ -26,9 +27,10 @@ export function Highlight({ text, word }: { text: string; word: string }) {
 export function Pronounce({ entry, refw }: { entry: Entry; refw: WordRef | Entry }) {
   const atlas = useAtlas();
   const accent = useStore((s) => s.settings.accent);
-  // 课本原声放在 uk 的位置；有词光美音的再加一个「美」
-  const items: ["uk" | "us", string, string][] = [["uk", "课本", entry.uk]];
   const media = "media" in refw && typeof refw.media === "number" ? refw.media : (refw as Entry).m;
+  const primary = entry.cefr === EXTENSION_UNIT ? (media & MEDIA.uk ? "英" : "朗读") : "课本";
+  const items: ["uk" | "us", string, string][] = [];
+  if (media & MEDIA.uk || !(media & MEDIA.us)) items.push(["uk", primary, entry.uk]);
   if (media & MEDIA.us) items.push(["us", "美", entry.us]);
   return (
     <div className="pron">
@@ -93,7 +95,7 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
         </header>
         {ref && (
           <p className="specimen">
-            课本{entry.page ? ` p.${entry.page}` : ""}
+            {entry.cefr === EXTENSION_UNIT ? "拓展" : entry.page ? `课本 p.${entry.page}` : "课本"}
             <i />№ {String(ref.order + 1).padStart(4, "0")}
           </p>
         )}

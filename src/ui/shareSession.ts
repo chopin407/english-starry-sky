@@ -72,7 +72,7 @@ export async function shareSession(atlas: Atlas, s: ActiveSession) {
     ctx.fillRect(pad, H - 116, W - pad * 2, 2);
     ctx.fillStyle = "#1E2640";
     ctx.font = `600 34px ${SERIF}`;
-    ctx.fillText("英语星空", pad, H - 58);
+    ctx.fillText("英语星野", pad, H - 58);
     ctx.font = `400 26px ${SANS}`;
     ctx.fillStyle = "#8A8C96";
     const tag = bookTag();

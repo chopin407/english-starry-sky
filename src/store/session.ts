@@ -1,6 +1,7 @@
 import type { Atlas, WordRef } from "../atlas/types";
 import { MEDIA } from "../atlas/types";
 import { hashSeed, normalize, shuffle } from "../lib/text";
+import { EXTENSION_UNIT } from "../lib/unit";
 import { forgetResolvedWord } from "./practiceReview";
 import { dueCardIds } from "./due";
 import { isMastered, review, Rating, type Grade } from "./srs";
@@ -26,6 +27,19 @@ export function nextNew(atlas: Atlas, p: Progress, settings: Settings, count: nu
   };
   pass(settings.startLevel);
   if (out.length < count) pass(0);
+
+  // Reserve a slot in the daily and short journeys while keeping the first textbook word.
+  if (atlas.book === "7a" && out.length >= 2) {
+    const level = atlas.cefr.indexOf(EXTENSION_UNIT);
+    if (level >= 0 && atlas.byId.get(out[0])?.cefr !== level) {
+      const extension = atlas.words.find((w) => w.cefr === level && !p.cards[w.id]);
+      if (extension) {
+        const at = out.indexOf(extension.id);
+        out.splice(at === -1 ? out.length - 1 : at, 1);
+        out.splice(1, 0, extension.id);
+      }
+    }
+  }
   return out;
 }
 
@@ -38,11 +52,11 @@ export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {
 
 export const supportsJourneyPilot = (atlas: Atlas) => atlas.kind === "open" && (atlas.book === "6a" || atlas.book === "7a");
 
-export function pilotPlan(atlas: Atlas, plan: ReturnType<typeof todayPlan>, pilot: JourneyPilot) {
+export function pilotPlan(atlas: Atlas, plan: ReturnType<typeof todayPlan>, pilot: JourneyPilot, excludeReviews?: ReadonlySet<string>) {
   const [reviews, fresh] = pilot === "warmup" ? [4, 1] : [8, 3];
   const due = plan.due.filter((id) => {
     const ref = atlas.byId.get(id);
-    return ref && atlas.words[ref.order]?.id === id;
+    return !excludeReviews?.has(id) && ref && atlas.words[ref.order]?.id === id;
   });
   return { due: due.slice(0, reviews), fresh: plan.fresh.slice(0, fresh) };
 }
@@ -125,11 +139,13 @@ export function distractors(atlas: Atlas, ref: WordRef, kind: QuizKind, seed: nu
   return shuffle([ref.id, ...picks], seed);
 }
 
-export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { ids?: string[]; reviewOnly?: boolean; pilot?: JourneyPilot }): ActiveSession {
+export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: {
+  ids?: string[]; reviewOnly?: boolean; pilot?: JourneyPilot; excludeReviews?: ReadonlySet<string>;
+}): ActiveSession {
   const seed = Date.now();
   const pilot = !opts?.ids && supportsJourneyPilot(atlas) ? opts?.pilot : undefined;
   const daily = todayPlan(atlas, p, s);
-  const plan = pilot ? pilotPlan(atlas, daily, pilot) : daily;
+  const plan = pilot ? pilotPlan(atlas, daily, pilot, opts?.excludeReviews) : daily;
   const reviewIds = opts?.ids ? opts.ids.filter((id) => p.cards[id]) : plan.due.slice(0, 120);
   const newIds = opts?.ids ? opts.ids.filter((id) => !p.cards[id]) : opts?.reviewOnly ? [] : plan.fresh;
   const steps: Step[] = [];
@@ -147,6 +163,20 @@ export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { id
     shuffle(group, seed + g).forEach((id, i) => steps.push(quiz(id, 1000 + g + i)));
   }
   return { id: `s${seed}`, started: seed, steps, index: 0, graded: {}, newIds, reviewIds, ...(pilot ? { pilot } : {}) };
+}
+
+export function shortFollowUp(atlas: Atlas, p: Progress, settings: Settings, completed: ActiveSession) {
+  if (!completed.pilot || !supportsJourneyPilot(atlas)) return null;
+  const ids = [...new Set([...completed.reviewIds, ...completed.newIds])];
+  const excludeReviews = new Set(ids);
+  const { due, fresh } = pilotPlan(atlas, todayPlan(atlas, p, settings), "short", excludeReviews);
+  if (due.length || fresh.length) {
+    return { kind: "short" as const, due: due.length, fresh: fresh.length, options: { pilot: "short" as const, excludeReviews } };
+  }
+  const studied = ids.filter((id) => p.cards[id] && atlas.byId.has(id));
+  const missed = (id: string) => completed.graded[id] === Rating.Again && !completed.recovered?.includes(id);
+  const reinforcement = [...studied.filter(missed), ...studied.filter((id) => !missed(id))].slice(0, 3);
+  return reinforcement.length ? { kind: "reinforce" as const, options: { ids: reinforcement } } : null;
 }
 
 export function gradeFor(kind: QuizKind, correct: boolean, ms: number, hinted: boolean): Grade {

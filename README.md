@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/logo.svg" width="96" alt="英语星空" />
+<img src="docs/logo.svg" width="96" alt="英语星野" />
 
-# 英语星空 · English Galaxy
+# 英语星野 · English Galaxy
 
 **课本的词，一个一个点亮。**
 

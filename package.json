@@ -2,7 +2,7 @@
   "name": "english-starry-sky",
   "version": "1.3.0",
   "type": "module",
-  "description": "英语星空：人教版初中英语单词、课文点读、语法考点和中考真题练习网页",
+  "description": "英语星野：小学初中英语单词、课文点读、语法考点和中考真题练习网页",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
@@ -11,6 +11,7 @@
     "build:mini": "node --import tsx scripts/build-miniprogram.mjs",
     "build:all": "node scripts/release.mjs",
     "release": "node scripts/release.mjs",
+    "media:upload": "node scripts/upload-miniprogram-media.mjs",
     "test:mini": "npm run build:mini && node --test miniprogram/test/learning.test.cjs",
     "format": "prettier --write src vite.config.ts scripts/*.mjs package.json tsconfig.json"
   },

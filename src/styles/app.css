@@ -2554,6 +2554,9 @@ code {
   gap: 22px;
   align-items: center;
 }
+.prompt-spell > div:only-child {
+  grid-column: 1 / -1;
+}
 .spell-art {
   border-radius: 20px;
   box-shadow: var(--shadow);
@@ -4519,7 +4522,7 @@ a:hover .mark-needle,
   color: var(--ochre);
 }
 
-/* ===== 英语星空：真题提示 ===== */
+/* ===== 英语星野：真题提示 ===== */
 .exam-hint {
   margin-top: 16px;
   background: var(--ochre-soft);
@@ -4592,7 +4595,7 @@ a:hover .mark-needle,
   color: var(--ink);
 }
 
-/* ===== 英语星空：考点 ===== */
+/* ===== 英语星野：考点 ===== */
 .btn-sm {
   min-height: 36px;
   padding: 0 14px;
@@ -5033,7 +5036,7 @@ a:hover .mark-needle,
 }
 .exam-hint .exam-more { color: var(--ink-3); font-size: 13px; }
 
-/* ===== 英语星空：修两个手机上的问题 ===== */
+/* ===== 英语星野：修两个手机上的问题 ===== */
 /* 听写页的隐形输入框铺满整块区域，手机上会挡住「再听一遍」，把按钮提到上层 */
 .typing-zh .link {
   position: relative;

@@ -101,7 +101,7 @@ export function AtlasPage({
           <p className="eyebrow">图鉴 · {atlas.count.toLocaleString()} 词</p>
           <h1 className="display">每个词，都有一幅画。</h1>
           <p className="lede">
-            课本单词 · 课本原声 · 按 {atlas.cefr.length} 个单元整理
+            {atlas.book === "7a" ? "课本单词与拓展词汇" : "课本单词 · 课本原声"} · 按 {atlas.cefr.length} 个单元整理
           </p>
         </div>
         <label className="search">
