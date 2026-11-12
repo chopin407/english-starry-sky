@@ -68,7 +68,7 @@ export function Galaxy({
   const engine = useRef<GalaxyEngine | null>(null);
   const labels = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<{ ref: WordRef; x: number; y: number } | null>(null);
-  const [rotating, setRotating] = useState(false);
+  const [rotating, setRotating] = useState(true);
   const [fallback, setFallback] = useState(false);
   const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
   // 连成了的星座：一个单元的词全部点亮后，挑几颗星连成线
@@ -432,6 +432,14 @@ export function Galaxy({
         </ul>
       </div>
       <div className="galaxy-controls">
+        <div className="galaxy-mode" role="group" aria-label="星图拖动模式">
+          <button type="button" className="icon-btn" aria-pressed={!rotating} onClick={() => setRotating(false)}>
+            <Move size={16} aria-hidden="true" /> 平移
+          </button>
+          <button type="button" className="icon-btn" aria-pressed={rotating} onClick={() => setRotating(true)}>
+            <Orbit size={16} aria-hidden="true" /> 旋转
+          </button>
+        </div>
         <button className="icon-btn" onClick={() => engine.current?.zoom(0.8)} aria-label="放大">
           <Plus size={18} />
         </button>
@@ -443,7 +451,7 @@ export function Galaxy({
           onClick={() => {
             engine.current?.reset();
             engine.current?.replayIntro();
-            setRotating(false);
+            setRotating(true);
             if (store.get().settings.sfx) void cue("fly");
           }}
           aria-label="回到全景"
@@ -469,13 +477,7 @@ export function Galaxy({
           <Share2 size={17} />
         </button>
       </div>
-      <div className="galaxy-footer">
-        <div className="galaxy-mode" role="group" aria-label="星图拖动模式">
-          <button type="button" aria-pressed={!rotating} onClick={() => setRotating(false)}><Move size={15} aria-hidden="true" /> 平移</button>
-          <button type="button" aria-pressed={rotating} onClick={() => setRotating(true)}><Orbit size={15} aria-hidden="true" /> 旋转</button>
-        </div>
-        <p className="galaxy-hint">拖动{rotating ? "旋转" : "平移"} · 滚轮或双指缩放 · 点按星星打开词条</p>
-      </div>
+      <p className="galaxy-hint">拖动{rotating ? "旋转" : "平移"} · 滚轮或双指缩放 · 点按星星打开词条</p>
     </div>
   );
 }

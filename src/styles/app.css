@@ -4301,6 +4301,7 @@ a:hover .mark-needle,
   right: 14px;
   top: 14px;
   display: grid;
+  justify-items: center;
   gap: 6px;
 }
 .galaxy-controls .icon-btn {
@@ -4308,42 +4309,31 @@ a:hover .mark-needle,
   background: rgba(243, 236, 223, 0.08);
   border: 1px solid rgba(243, 236, 223, 0.1);
 }
-.galaxy-controls .icon-btn:hover {
+.galaxy-controls .icon-btn:hover:not(:disabled) {
   background: rgba(243, 236, 223, 0.18);
   color: #fff;
 }
-.galaxy-footer {
-  position: absolute;
-  inset-inline: 10px;
-  bottom: 12px;
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  pointer-events: none;
-}
 .galaxy-mode {
-  display: flex;
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid rgba(243, 236, 223, 0.2);
-  border-radius: 999px;
-  background: #171c31;
-  pointer-events: auto;
+  display: grid;
+  gap: 6px;
 }
-.galaxy-mode button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 36px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 13px;
+.galaxy-mode .icon-btn {
+  width: 48px;
+  height: 48px;
+  align-content: center;
+  gap: 2px;
+  font-size: 11px;
+  line-height: 1.2;
 }
-.galaxy-mode button[aria-pressed="true"] {
+.galaxy-controls .icon-btn[aria-pressed="true"] {
   background: #f3ecdf;
   color: #161c31;
 }
 .galaxy-hint {
+  position: absolute;
+  inset-inline: 10px;
+  bottom: 12px;
+  pointer-events: none;
   margin: 0;
   text-align: center;
   font-size: 12px;

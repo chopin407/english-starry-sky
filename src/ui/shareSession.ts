@@ -1,4 +1,5 @@
 import { bookTag } from "../lib/books";
+import { APP_NAME } from "../lib/unit";
 import type { Atlas } from "../atlas/types";
 import { sessionStats } from "../store/session";
 import { Rating } from "../store/srs";
@@ -72,7 +73,7 @@ export async function shareSession(atlas: Atlas, s: ActiveSession) {
     ctx.fillRect(pad, H - 116, W - pad * 2, 2);
     ctx.fillStyle = "#1E2640";
     ctx.font = `600 34px ${SERIF}`;
-    ctx.fillText("英语星野", pad, H - 58);
+    ctx.fillText(APP_NAME, pad, H - 58);
     ctx.font = `400 26px ${SANS}`;
     ctx.fillStyle = "#8A8C96";
     const tag = bookTag();

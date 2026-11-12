@@ -181,7 +181,7 @@ export function About() {
             英语星空的源代码（GitHub） <ArrowUpRight size={14} />
           </a>
           <a className="link" href={CUR_CUR_SOURCE_URL} target="_blank" rel="noreferrer">
-            英语星野的源代码（GitHub） <ArrowUpRight size={14} />
+            {APP_NAME}的源代码（GitHub） <ArrowUpRight size={14} />
           </a>
         </section>
       </div>

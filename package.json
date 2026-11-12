@@ -2,7 +2,7 @@
   "name": "english-starry-sky",
   "version": "1.3.0",
   "type": "module",
-  "description": "英语星野：小学初中英语单词、课文点读、语法考点和中考真题练习网页",
+  "description": "英语星穹：小学初中英语单词、课文点读、语法考点和中考真题练习网页",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",

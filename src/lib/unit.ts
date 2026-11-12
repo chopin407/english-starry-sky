@@ -6,7 +6,7 @@ export const unitShort = (title: string) => title === EXTENSION_UNIT ? "拓展" 
 /** "Starter Unit 1" → "starter-unit-1"，和考点数据里的单元 id 一致 */
 export const unitId = (title: string) => title.toLowerCase().replace(/\s+/g, "-");
 
-export const APP_NAME = "英语星野";
+export const APP_NAME = "英语星穹";
 
 /** 单元宝箱的记录名：七上沿用「Unit 1」（老存档不变），其他册加册号「8a Unit 1」，免得各册的 Unit 1 撞名 */
 export const unitKey = (book: string | undefined, title: string) => (!book || book === "7a" ? title : `${book} ${title}`);

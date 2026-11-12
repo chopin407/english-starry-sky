@@ -1,4 +1,4 @@
-# 英语星空（新版）
+# 英语星穹
 
 英语练习网页，收录人教版 PEP 六上、初中英语五册及外研版九年级。界面基于开源项目 [词光 Word Atlas](https://github.com/designfuchen/word-atlas)（MIT）改造。
 
