@@ -49,7 +49,8 @@ try {
         $id = $row[0]
         $wordPath = Join-Path $atlas "audio/us/$id.mp3"
         if (-not ($row[6] -band 6) -and -not (Test-Path -LiteralPath $wordPath)) {
-            Save-Recording $row[1] $wordPath $id
+            $headword = $row[1] -creplace '\bPE\b', 'P E' -creplace '\bIT\b', 'I T'
+            Save-Recording $headword $wordPath $id
             $written++
         }
         $group = [int][Math]::Floor($i / $index.chunk)
@@ -61,7 +62,8 @@ try {
         $examplePath = Join-Path $atlas "audio/ex/$id.mp3"
         if ($example -and ((-not ($row[6] -band 8)) -or $recordings.Contains($id))) {
             if ($recordings[$id] -ne $example -or -not (Test-Path -LiteralPath $examplePath)) {
-                Save-Recording $example $examplePath $id
+                $spokenExample = $example -creplace '\bPE\b', 'P E' -creplace '\bIT\b', 'I T'
+                Save-Recording $spokenExample $examplePath $id
                 $recordings[$id] = $example
                 $written++
             }

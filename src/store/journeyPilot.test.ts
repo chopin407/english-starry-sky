@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Atlas, WordRef } from "../atlas/types";
-import { EXTENSION_UNIT } from "../lib/unit";
-import { applyJourneyAnswer, buildSession, journeyProgress, sessionFor, shortFollowUp, supportsJourneyPilot, todayPlan, withSession } from "./session";
+import { CORE_VOCAB_UNIT, EXTENSION_UNIT } from "../lib/unit";
+import { applyJourneyAnswer, buildSession, journeyProgress, nextNew, sessionFor, shortFollowUp, supportsJourneyPilot, todayPlan, withSession } from "./session";
 import { Rating, review } from "./srs";
 import { defaultSettings, emptyProgress, sanitizeProgress, type ActiveSession, type QuizKind, type Step } from "./store";
 
@@ -49,6 +49,44 @@ test("7a daily and short journeys introduce unseen extension vocabulary within t
   assert.deepEqual(buildSession(atlas, p, settings, { pilot: "short" }).newIds, ["word-0", "word-14", "word-1"]);
   p.cards["word-14"] = review(undefined, Rating.Good, 0);
   assert.deepEqual(buildSession(atlas, p, settings, { pilot: "short" }).newIds, ["word-0", "word-1", "word-2"]);
+});
+
+test("daily and short journeys make room for both supplements and keep the textbook sequence", () => {
+  const atlas = makeAtlas("7a");
+  atlas.cefr.push("Unit 1", EXTENSION_UNIT, CORE_VOCAB_UNIT);
+  atlas.words[8].cefr = atlas.words[9].cefr = atlas.words[10].cefr = 1;
+  atlas.words[11].cefr = atlas.words[12].cefr = 2;
+  atlas.words[13].cefr = atlas.words[14].cefr = 3;
+  const p = emptyProgress("pep-7a");
+  const settings = { ...defaultSettings, dailyNew: 5, startLevel: 1 };
+
+  assert.deepEqual(todayPlan(atlas, p, settings).fresh, ["word-8", "word-11", "word-13", "word-9", "word-10"]);
+  const short = buildSession(atlas, p, settings, { pilot: "short" });
+  assert.deepEqual(short.newIds, ["word-8", "word-11", "word-13"]);
+  for (const id of short.newIds) {
+    assert.ok(short.steps.some((step) => step.id === id && step.kind !== "intro"));
+    p.cards[id] = review(undefined, Rating.Good, 0);
+  }
+  const followUp = buildSession(atlas, p, settings, { pilot: "short" });
+  assert.deepEqual(followUp.newIds, ["word-9", "word-12", "word-14"]);
+  assert.ok(followUp.reviewIds.includes("word-11") && followUp.reviewIds.includes("word-13"));
+  assert.deepEqual(nextNew(atlas, p, settings, 0), []);
+  assert.deepEqual(nextNew(atlas, p, settings, 1), ["word-9"]);
+  const pair = nextNew(atlas, p, settings, 2);
+  assert.equal(pair[0], "word-9");
+  assert.ok(["word-12", "word-14"].includes(pair[1]));
+  assert.deepEqual(buildSession(atlas, p, settings, { ids: ["word-10"] }).newIds, ["word-10"]);
+});
+
+test("books with just the core vocabulary supplement include it in the daily journey", () => {
+  for (const book of ["8a", "9"]) {
+    const atlas = makeAtlas(book);
+    atlas.cefr.push(CORE_VOCAB_UNIT);
+    atlas.words[14].cefr = 1;
+    const p = emptyProgress("pep-7a");
+    assert.deepEqual(todayPlan(atlas, p, { ...defaultSettings, dailyNew: 5 }).fresh,
+      ["word-0", "word-14", "word-1", "word-2", "word-3"]);
+  }
 });
 
 test("six and seven A can start the next short task with different due words and remaining new words", () => {

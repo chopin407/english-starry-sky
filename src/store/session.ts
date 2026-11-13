@@ -17,30 +17,35 @@ export function newToday(p: Progress) {
 
 /** Next unseen words along the learning path, starting at the learner's level. */
 export function nextNew(atlas: Atlas, p: Progress, settings: Settings, count: number) {
-  const out: string[] = [];
-  const pass = (from: number) => {
-    for (const w of atlas.words) {
-      if (out.length >= count) return;
-      if (w.cefr < from || p.cards[w.id] || out.includes(w.id)) continue;
-      out.push(w.id);
-    }
-  };
-  pass(settings.startLevel);
-  if (out.length < count) pass(0);
-
-  // Reserve a slot in the daily and short journeys while keeping the first textbook word.
-  if (atlas.book === "7a" && out.length >= 2) {
-    const level = atlas.cefr.indexOf(EXTENSION_UNIT);
-    if (level >= 0 && atlas.byId.get(out[0])?.cefr !== level) {
-      const extension = atlas.words.find((w) => w.cefr === level && !p.cards[w.id]);
-      if (extension) {
-        const at = out.indexOf(extension.id);
-        out.splice(at === -1 ? out.length - 1 : at, 1);
-        out.splice(1, 0, extension.id);
-      }
-    }
+  if (count <= 0) return [];
+  const preferred: WordRef[] = [];
+  const earlier: WordRef[] = [];
+  for (const ref of atlas.words) {
+    if (p.cards[ref.id]) continue;
+    (ref.cefr >= settings.startLevel ? preferred : earlier).push(ref);
   }
-  return out;
+  const available = [...preferred, ...earlier];
+  const first = available[0];
+  if (!first) return [];
+  if (atlas.kind !== "open" || count === 1) return available.slice(0, count).map((ref) => ref.id);
+
+  // Keep the first word on the chosen path. Alternate supplements by day if only one can fit.
+  const units = [EXTENSION_UNIT, CORE_VOCAB_UNIT];
+  const dayNumber = Date.parse(dayKey()) / 86_400_000;
+  if (count === 2 && dayNumber % 2 !== 0) units.reverse();
+  const selected = new Set([first.id]);
+  for (const unit of units) {
+    if (selected.size >= count) break;
+    const level = atlas.cefr.indexOf(unit);
+    if (level < 0 || first.cefr === level) continue;
+    const ref = available.find((word) => word.cefr === level);
+    if (ref) selected.add(ref.id);
+  }
+  for (const ref of available) {
+    if (selected.size >= count) break;
+    selected.add(ref.id);
+  }
+  return [...selected];
 }
 
 export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {

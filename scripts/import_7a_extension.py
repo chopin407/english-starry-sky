@@ -19,10 +19,24 @@ MEDIA = (
     (4, "audio/us", "mp3"),
 )
 PREFER_CUSTOM_EXAMPLE = {"active", "close", "expect", "peace", "practice", "respect", "share", "tie"}
+SCHOOL_EXAMPLES = {"English", "Chinese", "maths", "PE", "music", "art", "physics", "interesting",
+                   "creative", "hard", "difficult", "terrible", "kind and humorous"}
+CAREERS = {"PE teacher", "player", "IT engineer", "artist", "doctor", "lawyer", "judge",
+           "writer", "manager", "accountant", "boss", "programmer", "architect", "electrician"}
+# These headwords have a different sense in Word Atlas.
+CUSTOM_MEDIA = {"Chinese", "hard", "judge"}
+CUSTOM_ILLUSTRATIONS = {"judge", "programmer"}
+CUSTOM_IPA = {"PE": "/ˌpiː ˈiː/", "PE teacher": "/ˌpiː ˈiː ˌtiːtʃə(r)/",
+              "IT engineer": "/ˌaɪ ˈtiː ˌendʒɪˈnɪə(r)/", "judge": "/dʒʌdʒ/",
+              "hard": "/hɑːd/", "Chinese": "/ˌtʃaɪˈniːz/"}
 NOTES = {
     "close": "表示“亲近的”时，末尾读 /s/；表示“关闭”时，末尾读 /z/。词头录音为动词读音。",
     "held out one's hand": "one's 要换成与主语相应的所有格，如 held out his hand。",
     "too … to": "too + 形容词或副词 + (for sb.) + to + 动词原形。",
+    "maths": "英式英语常用 maths，美式英语常用 math。",
+    "PE": "physical education 的缩写，按字母 P、E 读。",
+    "IT engineer": "IT 是 information technology 的缩写，按字母 I、T 读。",
+    "hard": "形容学科或任务时，hard 可以表示 difficult（难的）。",
 }
 
 
@@ -103,6 +117,8 @@ def import_words(source):
                 continue
             matches = [(root, lookup(root, word.casefold())) for root in media_sources]
             matches = [(root, match) for root, match in matches if match is not None]
+            if word in CUSTOM_MEDIA:
+                matches = [(root, match) for root, match in matches if word == "judge" and root.name == "9"]
             upstream = matches[0][1][1] if matches and matches[0][0] == source else {}
             local_id = next((row[0] for root, (row, _) in matches if root != source), None)
             wid = local_id or upstream.get("id") or re.sub(r"[^a-z0-9]+", "-", word.casefold()).strip("-")
@@ -113,6 +129,8 @@ def import_words(source):
             media = 0
             pronunciation = {}
             for bit, folder, ext in MEDIA:
+                if bit == 1 and word in CUSTOM_ILLUSTRATIONS:
+                    continue
                 for root, (row, entry) in matches:
                     if not row[6] & bit:
                         continue
@@ -125,9 +143,9 @@ def import_words(source):
 
             authored = {"en": en, "zh": translation, "src": "拓展"}
             examples = [authored]
-            if upstream.get("ex"):
+            if upstream.get("ex") and word not in SCHOOL_EXAMPLES:
                 atlas_example = {**upstream["ex"][0], "src": "拓展"}
-                custom_first = word in PREFER_CUSTOM_EXAMPLE
+                custom_first = word in PREFER_CUSTOM_EXAMPLE or word in CAREERS
                 examples = [authored, atlas_example] if custom_first else [atlas_example]
                 if upstream["m"] & 8:
                     copy_media(source, "audio/ex", upstream["id"], wid, "mp3", "audio/ex2" if custom_first else None)
@@ -147,6 +165,7 @@ def import_words(source):
 
             senses = [{"pos": p, "zh": s, "en": ""} for p, s in zip(pos.split("；"), zh.split("|"), strict=True)]
             uk, us = (pronunciation.get(accent) or upstream.get(accent, "") for accent in ("uk", "us"))
+            uk = uk or CUSTOM_IPA.get(word, "")
             display = "；".join(f"{sense['pos']} {sense['zh']}".strip() for sense in senses)
             rows.append([wid, word, display, uk or us, level, kind, media])
             entries.append({

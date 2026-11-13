@@ -1,0 +1,76 @@
+# 外研九上插画提示词
+
+内置 ImageGen，方形满幅复古水粉绘本风，纹理纸面，暖赭色、米色和蓝绿色，主体居中，无文字、数字、标识或水印。
+
+- **high-school** Teenagers with backpacks entering a welcoming high school building through wide doors.
+- **puppet** A child performing with a colorful marionette on a small wooden stage, strings visible.
+- **flooded** A surprised teenager receiving many envelopes pouring through a mail slot onto a large pile.
+- **hold-on** A determined teen hiker helps a tired friend climb the final steps to the top.
+- **lost** A young reader deeply absorbed in a book by a window, unaware of a friend waving nearby.
+- **viewer** Teenagers seated on a sofa watching a lively puppet show on television.
+- **folk-arts** A craft teacher and students making traditional Chinese paper cuttings and a small shadow puppet.
+- **scarecrow** A straw scarecrow wearing a floppy hat stands in a vegetable field with a crow nearby.
+- **educator** A thoughtful educator guides several teenagers as they work together at a classroom table.
+- **responsibility** A teenager carefully waters the class plants and feeds the class pet before leaving school.
+- **excerpt** A reader points to one highlighted passage on an open book whose pages contain only abstract lines.
+- **moneybox** A child drops a blank coin into the slot of a ceramic piggy bank.
+- **make-sense** Two pupils suddenly understand how the final jigsaw piece fits, smiles of recognition.
+- **dreamland** A sleeping child imagines a floating island with a moonlit castle among soft clouds.
+- **key** A pupil fits the crucial missing piece into a small working model, classmates look relieved.
+- **deal** A pupil calmly works with a friend to clear up a spilled box of art supplies.
+- **savings** A teenager sets several plain coins aside in a clear savings jar while a small stack remains on the table.
+- **budget** A parent carefully divides a small pile of blank coins between groceries and a modest home budget.
+- **on-sale** A shopper selects a sweater from a sale rack with a simple red blank tag while a friend compares prices.
+- **christmas-eve** A family places wrapped gifts beneath a Christmas tree on a snowy evening.
+- **remains** Young visitors explore the ruins of an ancient stone wall with an archaeologist.
+- **lie** A small village lies between a blue river and the foot of a mountain, aerial storybook view.
+- **giant** A friendly fairy-tale giant towers over tiny cottages and waves at villagers.
+- **fruit** Pupils proudly display a completed model they built together after much effort.
+- **smoothly** A well-practiced group of pupils completes a stage scene smoothly with every prop in place.
+- **bring-out** A conservator brushes dust off a clay ornament, revealing its colorful patterns.
+- **matchbox** A small open unmarked cardboard matchbox with red-tipped matches visible, on a wooden table.
+- **hit** A school audience enthusiastically applauds a popular puppet show.
+- **creativity** Two pupils give an old tin can new life as a colorful handmade planter.
+- **come-to-life** An illustrated museum puppet appears to come alive as a puppeteer moves it onstage.
+- **multimedia** A museum visitor enjoys a colorful audiovisual display with images and headphones, blank interface.
+- **fever** Excited fans crowd around a new exhibition, waving plain pennants, showing a craze.
+- **pride** A proud teenage craftsperson smiles beside the finished sculpture while classmates applaud.
+- **design** A decorative repeating geometric pattern on an embroidered scarf beside a pupil's craft materials.
+- **fridge-magnet** A child sticks a colorful star-shaped souvenir magnet on a fridge door.
+- **mirror** Two teenagers stand facing each other and deliberately mirror each other's hand gestures.
+- **great-aunt** An older great-aunt in a warm cardigan shows a young relative a family photo album.
+- **fighter** A determined wheelchair athlete pushes through the final meters of a race, spectators cheering.
+- **footstep** A clear trail of footprints in damp sand as a hiker walks farther away.
+- **name-after** A family points out an older relative in a portrait while holding a newborn baby with the same name, no signs.
+- **leave-behind** A bus pulls away while a forgotten backpack remains on a bench at the bus stop.
+- **pity** Two pupils look disappointed as rain spoils their planned outdoor picnic.
+- **post-u4** A duty officer stands attentively at an assigned position in a small control room.
+- **front-line** Rescue workers at the front line of a flood response pull a small boat toward dry land.
+- **presenter** A television presenter in a studio speaks to a large camera with a floor crew nearby, no graphics.
+- **co-pilot** Two airline pilots sit side by side in a cockpit, the co-pilot checks the controls, no legible dials.
+- **state** A student stands and clearly presents their conclusion to classmates, no written content.
+- **dreamer** A pensive teenager looks out the window and imagines a future airplane silhouetted in the clouds.
+- **countless** Two young hikers gaze at a night sky filled with countless small stars.
+- **scientific-research** Scientists in a bright lab examine plant samples under microscopes.
+- **poor** A pupil examines a poorly made paper bridge that has collapsed during a classroom test.
+- **drop** A thermometer next to a window shows a low liquid level as a cold breeze comes in, no numbers.
+- **benefit** Several pupils enjoy the benefits of a new shaded school garden on a hot day.
+- **wonder** Visitors stand in awe of a huge natural stone arch at sunrise.
+- **once-again** A student tries the same piano passage once more while the teacher listens patiently, no sheet music visible.
+- **admire** A young visitor pauses to admire a graceful vase in an art gallery.
+- **throughout** A student spends a whole rainy afternoon working on a model, split scene with sky changing from bright to dusk.
+- **start-over** A student clears a collapsed stack of blocks and begins building again from the base.
+- **get-along-with** Three friendly classmates work harmoniously together on an art project.
+- **global-warming** A melting glacier beside a warming ocean under a bright sun, stylized educational scene.
+- **overfish** A large fishing boat hauls a crowded net from the sea while very few fish remain below the waterline.
+- **greenhouse-gas** A visual explanation of greenhouse gases trapping warmth around Earth, thin translucent atmosphere and warm arrows, no text or numbers.
+- **logging** A managed woodland with a lumber worker beside neatly stacked logs and tree stumps.
+- **solar-panel** A technician adjusts blue solar panels on a sunny rooftop.
+- **endangered** A giant panda and its cub in a small protected bamboo grove watched from afar by a ranger.
+- **long-lasting** An old but sturdy well-maintained leather school bag passed from parent to teenager.
+- **stuck** A bicycle wheel stuck in thick mud as a teenager tries to pull it free.
+- **mistake-for** A surprised student takes a realistic artificial apple for a real one on a kitchen table.
+- **average** A teacher balances stacks of differently sized plain blocks into equal piles to illustrate the mean.
+- **break-down** A fallen leaf slowly breaks down into dark compost beside a newer green leaf, close educational scene.
+- **upcycle** Teenagers turn a worn wooden crate into an attractive garden planter.
+- **business** Two employees open their small bakery for the morning and arrange bread on shelves.

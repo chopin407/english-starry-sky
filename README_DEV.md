@@ -216,4 +216,6 @@ python -X utf8 scripts/import_fltrp9a.py scripts/build/fltrp9a "G:\opensoure\wor
 
 脚本先比对平台 MP3 的校验值，再按词表切分单词原声并导入全册录音。词表在 `scripts/fltrp9a_vocab.tsv`，练习在 `public/data/fltrp9a-points.json`。同一目录若有 `ocr-lessons.json` 和 `transcript.json`，脚本还会生成课文点读。前者按 `lesson-009` 这类 PDF 零基页号存放 OCR 行，后者按 `001` 这类音频编号存放文字与起止秒数。
 
+重建外研版词库后，运行 `python scripts/supplement_fltrp9a.py G:/opensoure/word-atlas scripts/build/fltrp9a/media-scenes`，重新登记补充插画、例句和录音。若脚本提示缺少录音，运行 `./scripts/build_core_vocabulary_audio.ps1 -JobsPath scripts/build/fltrp9a-audio-jobs.json`，再执行一次补充脚本。例句和插画来源分别维护在 `scripts/fltrp9a-supplement-examples.txt` 和 `scripts/fltrp9a-supplement-art.txt`。已提交的素材直接从 `public/atlas/fltrp9a/` 读取。
+
 六个单元的原创写作范文在 `src/data/essays/fltrp9a.ts` 维护。

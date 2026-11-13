@@ -11,7 +11,7 @@ type Props = {
 export function SpellInput({ target, pending, onSubmit }: Props) {
   const [value, setValue] = useState("");
   const [caret, setCaret] = useState(0);
-  const [usedHint, setUsedHint] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const [focused, setFocused] = useState(false);
   const form = useRef<HTMLFormElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -92,13 +92,16 @@ export function SpellInput({ target, pending, onSubmit }: Props) {
   const typedChars = Array.from(value);
   const firstMissing = chars.findIndex((char, i) => !same(char, typedChars[i] ?? ""));
   const nextLetter = firstMissing < 0 ? -1 : chars.findIndex((char, i) => i >= firstMissing && /\p{L}/u.test(char));
-  const canHint = nextLetter >= 0 && chars.slice(nextLetter + 1).some((char) => /\p{L}/u.test(char));
+  const hintLimit = Math.floor(chars.filter((char) => /\p{L}/u.test(char)).length / 2);
+  const hintsLeft = Math.max(0, hintLimit - hintsUsed);
+  const canHint = hintsLeft > 0 && nextLetter >= 0 && chars.slice(nextLetter + 1).some((char) => /\p{L}/u.test(char));
 
   const hint = () => {
+    if (!canHint) return;
     const prefix = chars.slice(0, nextLetter + 1).join("");
     setValue(prefix);
     setCaret(prefix.length);
-    setUsedHint(true);
+    setHintsUsed((used) => used + 1);
     input.current?.focus();
   };
 
@@ -108,7 +111,7 @@ export function SpellInput({ target, pending, onSubmit }: Props) {
       className={`spell ${target.length >= 24 ? "is-long" : ""}`}
       onSubmit={(e) => {
         e.preventDefault();
-        if (!pending && answer.trim()) onSubmit(answer, usedHint);
+        if (!pending && answer.trim()) onSubmit(answer, hintsUsed > 0);
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" && e.repeat) e.preventDefault();
@@ -178,7 +181,7 @@ export function SpellInput({ target, pending, onSubmit }: Props) {
       {!pending && (
         <div className="spell-actions">
           <button type="button" className="btn btn-ghost" onClick={hint} disabled={!canHint}>
-            <Lightbulb size={17} /> 提示字母
+            <Lightbulb size={17} /> 提示字母（剩 {hintsLeft} 次）
           </button>
           <button type="submit" className="btn btn-primary" disabled={!answer.trim()}>
             确认 <kbd>Enter</kbd>

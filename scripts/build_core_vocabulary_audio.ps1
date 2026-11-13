@@ -1,11 +1,12 @@
 param(
     [string]$Voice = 'Microsoft Zira Desktop',
-    [string]$Ffmpeg = 'ffmpeg'
+    [string]$Ffmpeg = 'ffmpeg',
+    [string]$JobsPath = (Join-Path $PSScriptRoot 'build/core-audio-jobs.json')
 )
 
 $ErrorActionPreference = 'Stop'
 $staging = Join-Path $PSScriptRoot 'build'
-$jobs = Get-Content -Raw -Encoding utf8 -LiteralPath (Join-Path $staging 'core-audio-jobs.json') | ConvertFrom-Json -NoEnumerate
+$jobs = Get-Content -Raw -Encoding utf8 -LiteralPath $JobsPath | ConvertFrom-Json -NoEnumerate
 $wav = Join-Path $staging 'core-voice.wav'
 $mp3 = Join-Path $staging 'core-voice.mp3'
 
