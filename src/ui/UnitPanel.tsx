@@ -2,7 +2,7 @@ import { BookOpen, Headphones, ListChecks, RotateCcw, Sparkles } from "lucide-re
 import { useAtlas } from "../atlas/context";
 import { go } from "../lib/router";
 import { cue } from "../lib/sound";
-import { EXTENSION_UNIT, unitId, unitKey } from "../lib/unit";
+import { CORE_VOCAB_UNIT, EXTENSION_UNIT, unitId, unitKey } from "../lib/unit";
 import { isPassed, unitPassNeed } from "../store/game";
 import { buildSession, withSession } from "../store/session";
 import { isMastered } from "../store/srs";
@@ -81,7 +81,7 @@ function UnitPanel({ index, onDone }: { index: number; onDone: () => void }) {
         <button className="btn btn-ghost btn-xl" disabled={!learned.length} onClick={() => startWith(reviewIds)}>
           <RotateCcw size={19} /> {learned.length ? `复习这个单元（${reviewIds.length} 个）` : "还没学过，先学新词"}
         </button>
-        {title !== EXTENSION_UNIT && (
+        {title !== EXTENSION_UNIT && title !== CORE_VOCAB_UNIT && (
           <>
             <button className="btn btn-ghost btn-xl" onClick={open(() => go({ page: "points", unit: unitId(title) }))}>
               <Headphones size={19} /> 读这个单元的课文

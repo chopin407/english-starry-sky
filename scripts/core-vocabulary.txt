@@ -1,0 +1,189 @@
+7a|be good at|擅长|I am good at painting.|我擅长画画。|art
+7a|be good for|对……有益|Fruit is good for your health.|水果对健康有益。|health
+7a|be good with|善于应付|Mia is good with animals.|米娅很会照顾动物。|pet
+7a|be bad for|对……有害|Too much sugar is bad for your teeth.|糖吃太多对牙齿有害。|health
+7a|be late for|迟到|Don't be late for school.|上学别迟到。|school
+7a|be from|来自|Are you from this town?|你来自这个镇吗？|friends
+7a|be interested in|对……感兴趣|I am interested in butterflies.|我对蝴蝶感兴趣。|nature
+7a|be afraid of|害怕|Ben is afraid of going on stage.|本害怕上台。|worry
+7a|be busy with|忙于|We are busy with our science project.|我们正忙着做科学项目。|science
+7a|be ready for|为……做好准备|We are ready for the hike.|我们准备好去徒步了。|travel
+7a|be ready to do|准备做|We are ready to leave.|我们准备好出发了。|travel
+7a|be angry with|生某人的气|Don't be angry with your friend.|别生你朋友的气。|kindness
+7a|be worried about|担心|She is worried about the show.|她担心这场演出。|worry
+7a|be strict with|对某人严格|Our teacher is strict with us.|老师对我们要求严格。|school
+7a|be proud of|为……骄傲|Dad is proud of my prize.|爸爸为我获奖感到骄傲。|celebrate
+7a|be popular with|受……欢迎|The art club is popular with students.|美术社很受学生欢迎。|art
+7a|be excited about|对……兴奋|They are excited about the school trip.|他们对学校组织的旅行很兴奋。|travel
+7a|be similar to|与……相似|These shoes are similar to mine.|这双鞋和我的相似。|compare
+7a|be different from|与……不同|My shoes are different from yours.|我的鞋和你的不一样。|compare
+7a|enjoy doing|喜欢做|I enjoy painting landscapes.|我喜欢画风景。|art
+7a|finish doing|完成做|She finished painting the picture.|她画完了这幅画。|art
+7a|practice doing|练习做|Leo practices playing the violin every day.|利奥每天练习拉小提琴。|music
+7a|mind doing|介意做|Do you mind helping me with this problem?|你介意帮我做这道题吗？|help
+7a|look forward to doing|期待做|We look forward to visiting the nature reserve.|我们期待去参观自然保护区。|nature
+7a|thanks for doing|因……感谢|Thanks for helping me with my homework.|谢谢你帮我做作业。|help
+7a|how about doing|做……怎么样|How about playing a song together?|一起演奏一首曲子怎么样？|music
+7a|want to do|想要做|I want to learn the violin.|我想学小提琴。|music
+7a|would like to do|想要做|I'd like to join the art club.|我想加入美术社。|art
+7a|decide to do|决定做|We decided to fix the bridge.|我们决定修好这座模型桥。|problem
+7a|hope to do|希望做|I hope to win a prize one day.|我希望有一天能获奖。|celebrate
+7a|plan to do|计划做|We plan to go hiking tomorrow.|我们计划明天去徒步。|travel
+7a|learn to do|学着做|She is learning to play the guitar.|她正在学弹吉他。|music
+7a|ask sb. to do|请某人做|I asked my friend to help me.|我请朋友帮我。|help
+7a|tell sb. to do|告诉某人做|The lifeguard told us to stay back.|救生员叫我们往后退。|danger
+7a|get on|上车|We got on the bus at eight.|我们八点上了公交车。|bus
+7a|get off|下车|Get off the bus at the next stop.|在下一站下车。|bus
+7a|get to|到达|What time did you get to school?|你几点到学校的？|school
+7a|take off|脱下；起飞|The plane took off at noon.|飞机中午起飞了。|airplane
+7a|put off|推迟|We put off the trip because of the rain.|因为下雨，我们推迟了旅行。|weather
+7a|come from|来自|My new friend comes from Beijing.|我的新朋友来自北京。|friends
+7a|go on|继续|Go on with your work after the break.|休息后继续做你的工作。|problem
+7a|help sb. with sth.|帮某人做某事|Could you help me with my homework?|你能帮我做作业吗？|help
+7a|dining|用餐|We use this room for dining.|我们在这个房间吃饭。|meal
+7a|remind sb. of|使某人想起|This photo reminds me of our school trip.|这张照片让我想起学校组织的旅行。|memory
+7a|learn about|了解|We learned about butterflies on our trip.|我们在旅行中了解了蝴蝶。|nature
+7a|complain about|抱怨|They complained about the heavy rain.|他们抱怨雨下得太大。|weather
+7a|fight with|与……争吵；和……打架|Don't fight with your friends over a game.|别为了游戏跟朋友争吵。|kindness
+7a|break off|折断；中断|A small piece broke off the model bridge.|模型桥上掉下来一小块。|problem
+7a|send up|发射；向上送|The students sent up a model rocket.|学生们发射了一枚模型火箭。|science
+7a|set off|出发；引发|We set off at sunrise.|我们日出时出发了。|travel
+7a|pass on|传递；转告|Please pass on the good news to everyone.|请把这个好消息告诉大家。|friends
+7a|set up|建立；搭建|We set up a display for the school fair.|我们为学校活动布置了一个展台。|attention
+7a|cheer up|振作起来；使高兴|I tried to cheer my friend up.|我试着让朋友振作起来。|kindness
+7a|put into|把……放入|Put the toys into the box.|把玩具放进箱子里。|chores
+7a|take away|拿走|Please take away the rubbish.|请把垃圾拿走。|chores
+7a|keep up|跟上；保持|I walked faster to keep up with the group.|我加快脚步跟上队伍。|travel
+7a|keep out|不让进入；留在外面|Keep out of the water when the waves are high.|浪大的时候别下水。|danger
+7a|keep on|继续|Keep on practicing and you'll get better.|继续练习，你会进步的。|music
+7a|take out|拿出；带出去|Please take out the rubbish.|请把垃圾拿出去。|chores
+7a|get out of|从……出来；摆脱|We got out of the car and walked to the gate.|我们下了车，走向大门。|bus
+7a|get down|下来；蹲下|Can you get down from there safely?|你能安全地从那里下来吗？|danger
+7a|look over|检查；浏览|Please look over my work before I hand it in.|我交作业前，请帮我检查一下。|help
+7a|put away|收好|Put away your toys before dinner.|晚饭前把玩具收好。|chores
+7a|give out|分发|We gave out snacks to the hikers.|我们给徒步的人分发了零食。|travel
+7a|secretary|秘书|The club secretary keeps a list of members.|社团秘书保管成员名单。|help
+7a|umbrella|雨伞|Take an umbrella. It's raining.|带上雨伞，外面在下雨。|weather
+8a|be used to doing|习惯于做|I am used to getting up early.|我习惯早起。|routine
+8a|be used to do|被用来做|This tool is used to repair small models.|这个工具是用来修理小模型的。|problem
+8a|such … that|如此……以至于|It was such a good show that everyone clapped.|演出太精彩了，大家都鼓起掌来。|stage
+8a|not … until|直到……才|We did not leave until the rain stopped.|直到雨停我们才离开。|weather
+8a|not as … as|不如……|This pair is not as comfortable as that pair.|这双鞋没有那双舒服。|compare
+8a|the more …, the more …|越……越……|The more you practice, the more confident you feel.|你练习得越多，就越有信心。|music
+8a|prefer A to B|比起 B 更喜欢 A|I prefer these shoes to those.|比起那双鞋，我更喜欢这双。|compare
+8a|prefer doing to doing|比起做后者更喜欢做前者|I prefer painting to playing music.|比起演奏音乐，我更喜欢画画。|art
+8a|prefer to do rather than do|宁愿做而不愿做|I prefer to walk rather than take the bus.|我宁愿走路，也不愿坐公交车。|bus
+8a|would rather do than do|宁愿做而不愿做|I'd rather eat fresh fruit than eat candy.|我宁愿吃新鲜水果，也不愿吃糖。|health
+8a|be famous for|因……而著名|This town is famous for its beautiful trails.|这个小镇因漂亮的步道而闻名。|travel
+8a|be famous as|作为……而著名|She is famous as a violinist.|她是一位著名的小提琴演奏家。|music
+8a|be strict in|对某事严格|Our teacher is strict in checking our work.|老师检查作业时很严格。|help
+8a|be surprised at|对……惊讶|We were surprised at the deep snow.|厚厚的积雪让我们吃惊。|winter
+8a|be nervous about|对……紧张|I'm nervous about speaking on stage.|我对上台发言感到紧张。|worry
+8a|be sorry for|为……抱歉|I'm sorry for making you upset.|让你难过，我很抱歉。|kindness
+8a|be thankful to|对……感激|I'm thankful to my friend for helping me.|我感谢朋友帮了我。|help
+8a|be the same as|与……相同|My shoes are the same as yours.|我的鞋和你的一样。|compare
+8a|be pleased with|对……满意|She is pleased with her painting.|她对自己的画很满意。|art
+8a|be satisfied with|对……满意|They are satisfied with the finished model.|他们对做好的模型很满意。|problem
+8a|be responsible for|对……负责|I'm responsible for packing the water bottles.|我负责把水瓶装好。|camp
+8a|be harmful to|对……有害|Too much sugar is harmful to your teeth.|糖吃太多对牙齿有害。|health
+8a|be helpful to|对……有帮助|These examples are helpful to new students.|这些例子对新同学有帮助。|help
+8a|be important to|对……重要|My friends are important to me.|朋友对我很重要。|friends
+8a|be necessary for|对……必要|Water is necessary for a long hike.|长途徒步需要带水。|camp
+8a|be away from|远离|I'm away from home on a school trip.|我离开家，参加学校组织的旅行。|travel
+8a|be in trouble|陷入困境|If you're in trouble, ask an adult for help.|遇到麻烦时，请向成年人求助。|help
+8a|be in danger|处于危险|Swimmers can be in danger when waves are high.|浪高时，游泳的人可能有危险。|danger
+8a|come up with|想出|We came up with a way to fix the model.|我们想出了修好模型的办法。|problem
+8a|give away|赠送；泄露|We gave away books we no longer needed.|我们赠送了不再需要的书。|library
+8a|give back|归还|Please give back the book tomorrow.|请明天把书还回来。|library
+8a|make friends with|与……交朋友|I'd like to make friends with the new student.|我想和新同学交朋友。|friends
+8a|make up|编造；组成|She made up a story for the show.|她为演出编了一个故事。|stage
+8a|make a decision|做决定|We have to make a decision before we buy anything.|买东西之前，我们得做个决定。|shop
+8a|keep in touch|保持联系|Let's keep in touch after the trip.|旅行结束后，我们保持联系。|phone
+8a|keep away from|远离|Keep away from the rough waves.|远离汹涌的海浪。|danger
+8a|run out of|用完|We ran out of water on the hike.|我们徒步时把水喝完了。|camp
+8a|depend on|依靠|You can depend on me when you need help.|需要帮助时，你可以依靠我。|help
+8a|pay attention to|注意|Pay attention to the speaker.|注意听发言的人讲话。|stage
+8a|spend … on sth.|花……在某物上|I spent ten yuan on a notebook.|我花十元买了一本笔记本。|shop
+8a|spend … (in) doing|花……做某事|She spends an hour practicing every day.|她每天花一个小时练习。|music
+9|It is + adj. + for/of sb. + to do|对某人来说做……是……的|It's kind of you to help me.|你帮我，真是太好了。|help
+9|It is said that|据说|It is said that the old trail is beautiful in spring.|据说这条古道春天很美。|travel
+9|It is reported that|据报道|It is reported that the heavy rain will end tonight.|据报道，大雨今晚会停。|weather
+9|It is believed that|人们相信|It is believed that this forest is home to rare butterflies.|人们认为这片森林栖息着稀有蝴蝶。|nature
+9|It is important that|……是重要的|It is important that we listen to each other.|我们相互倾听很重要。|help
+9|It is necessary that|……是有必要的|It is necessary that everyone bring water.|每个人都需要带水。|camp
+9|It is no use doing|做……没有用|It is no use worrying about the rain.|担心下雨没有用。|weather
+9|It is no good doing|做……没有好处|It is no good arguing about whose turn it is.|争论轮到谁了没有好处。|kindness
+9|It's time to do / for sth.|到了该做……的时候|It's time to get on the bus.|该上车了。|bus
+9|It takes sb. some time to do|某人花多少时间做|It takes me ten minutes to get to school.|我到学校需要十分钟。|school
+9|There is no doubt that|毫无疑问|There is no doubt that she worked hard for the prize.|毫无疑问，她为获奖付出了很多努力。|celebrate
+9|There is no need to do|没必要做|There is no need to buy new shoes.|没必要买新鞋。|compare
+9|There is something wrong with|……出了问题|There is something wrong with the model bridge.|这座模型桥出了问题。|problem
+9|either … or|要么……要么……|You can choose either these shoes or those.|你可以选这双鞋，也可以选那双。|compare
+9|both … and|两者都|Both Leo and Mia play the guitar.|利奥和米娅都会弹吉他。|music
+9|as far as|就……而言|As far as I know, the trail is open today.|据我所知，今天步道开放。|travel
+9|as well as|也；和……一样|She plays the violin as well as the guitar.|她既会弹吉他，也会拉小提琴。|music
+9|by the end of|到……末为止|We'll finish the model by the end of the week.|我们会在本周结束前做完模型。|problem
+9|at the end of|在……末尾|There's a cabin at the end of the trail.|步道尽头有一间小屋。|travel
+9|at last|终于|At last, we reached the cabin.|我们终于到达了小屋。|travel
+9|at most|至多|We can take four bottles at most.|我们最多带四瓶。|camp
+9|at once|立刻|Please get out of the water at once.|请立刻离开水里。|danger
+9|at present|目前|At present, we are working on a model bridge.|目前，我们正在做一座模型桥。|problem
+9|at times|有时候|At times, I feel nervous before a show.|有时我会在演出前感到紧张。|worry
+9|in short|简言之|In short, we need a stronger bridge.|简言之，我们需要更坚固的桥。|problem
+9|in a word|总之|In a word, the show was a success.|总之，演出很成功。|stage
+9|in other words|换句话说|In other words, the bridge needs more support.|换句话说，这座桥需要更多支撑。|problem
+9|in common|共同（点）|These two shoes have something in common.|这两双鞋有共同点。|compare
+9|so as to|以便于|We left early so as to reach the cabin before dark.|我们早早出发，以便天黑前到达小屋。|travel
+9|enough to do|足够……可以做|We have enough water to finish the hike.|我们的水足够撑到徒步结束。|camp
+9|be supposed to do|应该做|You're supposed to pay before you leave.|你应该付款后再离开。|shop
+9|shake hands|握手|The two students shook hands when they met.|两个学生见面时握了手。|friends
+9|drop by|顺便拜访|Drop by our art club after class.|下课后顺路来我们美术社看看。|art
+9|be relaxed about|对……随意放松|I'm relaxed about playing in front of friends.|在朋友面前演奏，我很放松。|music
+9|make a mess|弄得一团糟|The children made a mess with their toys.|孩子们玩玩具，把房间弄得一团糟。|chores
+9|keep one's cool|沉住气|Try to keep your cool before going on stage.|上台前尽量沉住气。|worry
+9|go by|（时间）流逝|Time goes by quickly when we're having fun.|玩得开心时，时间过得很快。|friends
+9|stay in touch|保持联系|We stay in touch by phone.|我们通过电话保持联系。|phone
+9|set out|出发；着手|We set out for the cabin at sunrise.|我们日出时出发去小屋。|travel
+9|look back at|回顾|I like to look back at photos from the trip.|我喜欢回看旅行照片。|memory
+9|separate from|分离|Separate the useful things from the rubbish.|把有用的东西和垃圾分开。|chores
+9|pay for|付款|How much did you pay for the notebook?|你买这个笔记本花了多少钱？|shop
+7a|throw … away|把……扔掉|Don't throw the leftovers away.|别把剩菜扔掉。|waste
+9|pull down|拆掉|They will pull down the old bridge.|他们将拆掉这座旧桥。|problem
+9|borrow … from|从……借来|I borrowed a book from my friend.|我从朋友那里借了一本书。|library
+9|lend … to|把……借给|Can you lend this book to me?|你能把这本书借给我吗？|library
+9|provide sb. with sth.|给某人提供某物|The school provides us with books.|学校给我们提供书籍。|library
+9|provide sth. for sb.|为某人提供某物|The school provides books for us.|学校为我们提供书籍。|library
+9|cost sb. …|某物花了某人……钱|The notebook cost me ten yuan.|这个笔记本花了我十元。|shop
+9|be made of|由……制成（看得出原料）|The model bridge is made of wood.|这座模型桥是木头做的。|problem
+9|be made from|由……制成（看不出原料）|This paper is made from wood.|这张纸是用木材制成的。|art
+9|be interesting to|使……感兴趣|The model is interesting to many students.|很多学生觉得这个模型有意思。|science
+9|not … any more|不再……|We don't waste food any more.|我们不再浪费食物了。|waste
+9|stop doing|停止做某事|Please stop talking and listen.|请停止讲话，认真听。|stage
+9|stop to do|停下来去做另一件事|We stopped to look at a butterfly.|我们停下来看看蝴蝶。|nature
+9|remember doing|记得做过某事|I remember taking this photo.|我记得拍过这张照片。|memory
+9|remember to do|记得要做某事|Remember to bring some water.|记得带些水。|camp
+9|forget doing|忘记做过某事|I forgot lending you that book.|我忘了曾把那本书借给你。|library
+9|forget to do|忘记要做某事|I forgot to bring my umbrella.|我忘了带雨伞。|weather
+9|try doing|试着做某事|Try using a different brush.|试试用另一支画笔。|art
+9|try to do|努力设法做某事|We tried to fix the model bridge.|我们设法修好模型桥。|problem
+9|go on doing|继续做同一件事|She went on playing after a short break.|短暂休息后，她继续演奏。|music
+9|go on to do|接着做另一件事|After the song, she went on to tell a story.|唱完歌，她接着讲了一个故事。|stage
+7a|personally|就我个人而言；亲自|Personally, I like to put my phone away at dinner.|就我个人而言，我喜欢吃饭时把手机收起来。|change
+7a|a few seconds|几秒钟|Wait a few seconds before you start.|开始之前等几秒钟。|seconds
+7a|in the moment|在当下；在此刻|Put away your phone and enjoy being in the moment.|收起手机，享受当下。|change
+7a|share food online|在网上分享美食（照片或视频）|Many people share food online by posting photos.|很多人通过发布照片在网上分享美食。|social
+7a|through social media|通过社交媒体|They keep in touch through social media.|他们通过社交媒体保持联系。|social
+7a|posts|帖子（复数）|Her posts about food are popular.|她的美食帖子很受欢迎。|social
+7a|clicks|点击；点击次数（复数）|The food photo got many clicks.|这张美食照片获得了很多点击。|social
+7a|bites|几口；咬下的一口口食物|She took two bites and saved the rest for later.|她吃了两口，把剩下的留到以后吃。|meal
+7a|dishes|菜肴（复数）|We cooked three dishes for dinner.|我们做了三道菜当晚饭。|meal
+7a|pop up|冒出；弹出|New food photos pop up on my screen.|新的美食照片在我的屏幕上弹出来。|social
+7a|page|页面；页|I saw the photo on her page.|我在她的页面上看到了这张照片。|social
+7a|a show|一场表演|We watched a show at school.|我们在学校看了一场表演。|stage
+7a|draw the line|画一条线；划定界限|Use a ruler to draw the line.|用尺子画这条线。|line
+7a|truly like|真正地喜欢|Order a dish you truly like.|点一道你真正喜欢的菜。|meal
+7a|devalue|贬低；使贬值|Wasting food can devalue the work behind every meal.|浪费食物可能会让人轻视每一餐背后的劳动。|waste
+7a|useless|无用的|A broken tool is useless for this job.|坏掉的工具对这项工作没有用。|problem
+7a|eye-catching|引人注目的；抢眼的|The paper birds made an eye-catching display.|纸鸟让这个展台格外抢眼。|attention
+7a|trend|潮流；趋势|Sharing photos of meals is an online trend.|分享餐食照片是一种网络潮流。|social
+7a|no longer|不再|We no longer use our phones at dinner.|我们吃晚饭时不再用手机了。|change

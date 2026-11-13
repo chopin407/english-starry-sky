@@ -82,13 +82,19 @@ def import_words(source):
     recordings_path = HERE / "7a-extension-recordings.json"
     recordings = read(recordings_path) if recordings_path.exists() else {}
     # Keep textbook rows, IDs and positions intact. The extension is appended as a group.
-    base_rows = [row for row in index["words"] if row[4] != level]
+    first = next((i for i, row in enumerate(index["words"]) if row[4] == level), len(index["words"]))
+    base_rows = index["words"][:first]
+    later = [
+        (row, chunk(DEST, i // index["chunk"])[i % index["chunk"]])
+        for i, row in enumerate(index["words"][first:], first)
+        if row[4] != level
+    ]
     base_count = len(base_rows)
     first_chunk, first_slot = divmod(base_count, index["chunk"])
     entries = chunk(DEST, first_chunk)[:first_slot] if first_slot else []
     rows = list(base_rows)
-    used_ids = {row[0] for row in base_rows}
-    base_words = {row[1].casefold() for row in base_rows}
+    used_ids = {row[0] for row in base_rows} | {row[0] for row, _ in later}
+    base_words = {row[1].casefold() for row in base_rows} | {row[1].casefold() for row, _ in later}
     books = sorted(path.parent for path in DEST.glob("*/index.json"))
     media_sources = [source, *books]
     with (HERE / "vocab-7a-extension.tsv").open(encoding="utf-8", newline="") as file:
@@ -149,6 +155,9 @@ def import_words(source):
                 "cefr": UNIT, "topic": index["topics"][kind][0], "m": media, "unit": UNIT,
             })
 
+    extension_count = len(rows) - base_count
+    rows.extend(row for row, _ in later)
+    entries.extend(entry for _, entry in later)
     size = index["chunk"]
     changed = False
     for offset in range(0, len(entries), size):
@@ -161,7 +170,7 @@ def import_words(source):
     if changed or index != old_index:
         index["version"] += 1
         write(DEST / "index.json", index)
-    print(f"{len(rows) - base_count} extension entries, {len(rows)} words total")
+    print(f"{extension_count} extension entries, {len(rows)} words total")
 
 
 if __name__ == "__main__":

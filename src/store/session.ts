@@ -1,7 +1,7 @@
 import type { Atlas, WordRef } from "../atlas/types";
 import { MEDIA } from "../atlas/types";
 import { hashSeed, normalize, shuffle } from "../lib/text";
-import { EXTENSION_UNIT } from "../lib/unit";
+import { CORE_VOCAB_UNIT, EXTENSION_UNIT } from "../lib/unit";
 import { forgetResolvedWord } from "./practiceReview";
 import { dueCardIds } from "./due";
 import { isMastered, review, Rating, type Grade } from "./srs";
@@ -93,7 +93,13 @@ export function withSession(atlas: Atlas, progress: Progress, session: ActiveSes
   return { ...progress, session: oldKey ? null : old, sessions };
 }
 
-function quizKind(ref: WordRef, p: Progress, s: Settings, salt: number): QuizKind {
+function canSpell(ref: WordRef, atlas: Atlas, settings: Settings) {
+  if (!settings.spell || !/\p{L}.*\p{L}/u.test(ref.word)) return false;
+  // Sentence patterns use ellipses, grammar abbreviations or placeholders as notation.
+  return atlas.cefr[ref.cefr] !== CORE_VOCAB_UNIT || !/(?:…|[+/]|\b(?:sb|sth|adj)\.|\b(?:doing|to do|A|B)\b)/.test(ref.word);
+}
+
+function quizKind(atlas: Atlas, ref: WordRef, p: Progress, s: Settings, salt: number): QuizKind {
   const c = p.cards[ref.id];
   const hasImg = !!(ref.media & MEDIA.img);
   const roll = hashSeed(ref.id + salt) % 100;
@@ -101,7 +107,7 @@ function quizKind(ref: WordRef, p: Progress, s: Settings, salt: number): QuizKin
     if (hasImg && roll < 45) return "picture";
     return roll < 80 ? "meaning" : "listen";
   }
-  if (s.spell && (c.s >= 4 || roll < 35)) return roll < 75 ? "spell" : hasImg ? "picture" : "listen";
+  if (canSpell(ref, atlas, s) && (c.s >= 4 || roll < 35)) return roll < 75 ? "spell" : hasImg ? "picture" : "listen";
   return roll < 50 ? "listen" : hasImg ? "picture" : "meaning";
 }
 
@@ -151,7 +157,7 @@ export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: {
   const steps: Step[] = [];
   const quiz = (id: string, salt: number): Step => {
     const ref = atlas.byId.get(id)!;
-    const kind = quizKind(ref, p, s, seed + salt);
+    const kind = quizKind(atlas, ref, p, s, seed + salt);
     return { id, kind, options: kind === "spell" ? undefined : distractors(atlas, ref, kind, seed + salt) };
   };
   // Reviews first while attention is fresh, then new words in small groups:
@@ -223,9 +229,8 @@ export function applyJourneyAnswer(atlas: Atlas, p: Progress, settings: Settings
     // A guided multiple-choice attempt is followed by one unaided check.
     if (retries < 2 || (sess.pilot && guidedChoice && retries === 2)) {
       const ref = atlas.byId.get(step.id)!;
-      const canSpell = settings.spell && /\p{L}.*\p{L}/u.test(ref.word);
       const kind: QuizKind = sess.pilot
-        ? canSpell ? "spell" : "listen"
+        ? canSpell(ref, atlas, settings) ? "spell" : "listen"
         : step.kind === "meaning" ? (ref.media & MEDIA.img ? "picture" : "listen") : "meaning";
       const guided = !!sess.pilot && kind !== "spell" && !correct && retries === 1;
       let options = kind === "spell" ? undefined : distractors(atlas, ref, kind, now);

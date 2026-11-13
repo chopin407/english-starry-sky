@@ -1,7 +1,12 @@
 export const EXTENSION_UNIT = "拓展词汇";
+export const CORE_VOCAB_UNIT = "核心短语与词汇";
 
 /** 课本单元的短名："Starter Unit 1" → "S1"，"Unit 7" → "U7" */
-export const unitShort = (title: string) => title === EXTENSION_UNIT ? "拓展" : title.replace("Starter Unit ", "S").replace(/^Unit /, "U");
+export const unitShort = (title: string) => {
+  if (title === EXTENSION_UNIT) return "拓展";
+  if (title === CORE_VOCAB_UNIT) return "核心词汇";
+  return title.replace("Starter Unit ", "S").replace(/^Unit /, "U");
+};
 
 /** "Starter Unit 1" → "starter-unit-1"，和考点数据里的单元 id 一致 */
 export const unitId = (title: string) => title.toLowerCase().replace(/\s+/g, "-");

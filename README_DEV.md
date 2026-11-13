@@ -168,6 +168,7 @@ uv pip install --python "$root/.sync-venv/bin/python" 'PyMySQL[rsa]>=1.1,<2'
 - 七上拓展词维护在 `scripts/vocab-7a-extension.tsv`。修改词表或重建七上课本图鉴后，运行 `python scripts/import_7a_extension.py G:/opensoure/word-atlas` 导入词条和本地素材，路径可换成自己的词光项目目录。
 - 拓展词缺图时，为词义绘制无文字的场景图，按词条 ID 将 512 × 512 和 256 × 256 WebP 放进 `public/atlas/img/` 和 `public/atlas/thumb/`。插画提示词见 `scripts/7a-extension-illustrations.tsv`。保留已有词光素材。
 - 在 Windows 的 PowerShell 7 中运行 `./scripts/build_7a_extension_audio.ps1`，用系统英文语音和 ffmpeg 补齐缺失的词头、首条例句 MP3。生成后重跑拓展词导入脚本，更新图片和录音索引。
+- 七、八、九年级核心短语和七上期中词汇维护在 `scripts/core-vocabulary.txt`。运行 `python scripts/import_core_vocabulary.py G:/opensoure/word-atlas scripts/build/core-scenes`，优先复用词光素材，按整个网页词库去重。补图目录按 `img/<场景>.webp` 和 `thumb/<场景>.webp` 放置，提示词见 `scripts/core-vocabulary-illustrations.md`。缺少录音时，运行 `./scripts/build_core_vocabulary_audio.ps1` 后再执行一次导入。
 - 改了考点题目后：`python3 scripts/build_points_audio.py <ffmpeg路径>`，只补录新句子；改过的句子要先删掉 `public/audio/points/` 里对应的 mp3。
 
 ## 环境音乐
